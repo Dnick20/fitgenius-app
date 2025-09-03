@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Target, Weight, Flame, TrendingUp, Calendar, Trophy, Heart, Zap, ArrowRight, Utensils, Dumbbell, User, Activity, Calculator, ChevronLeft, ChevronRight, MessageCircle, Loader } from 'lucide-react';
 import OpenAIService from './services/openai';
 import { validateProfile, sanitizeInput } from './utils/validation';
+import MobileNavigation from './components/MobileNavigation';
 
 // Profile Setup Component
 const ProfileSetup = ({ onComplete, onBack }) => {
@@ -272,6 +273,7 @@ const ProfileSetup = ({ onComplete, onBack }) => {
 
 function App() {
   const [currentView, setCurrentView] = useState('welcome'); // welcome, profile, dashboard
+  const [currentPage, setCurrentPage] = useState('dashboard');
   const [userProfile, setUserProfile] = useState(null);
   const [aiResponse, setAiResponse] = useState(null);
   const [showAiModal, setShowAiModal] = useState(false);
@@ -552,6 +554,12 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 relative overflow-hidden">
+      {/* Mobile Navigation */}
+      <MobileNavigation 
+        currentPage={currentPage} 
+        onNavigate={setCurrentPage} 
+      />
+      
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-orange-400 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse"></div>
@@ -559,7 +567,7 @@ function App() {
         <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse"></div>
       </div>
       
-      <div className="relative z-10 p-4 md:p-8">
+      <div className="relative z-10 p-4 md:p-8 lg:pt-8 pt-20 pb-24 lg:pb-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <header className="mb-8">
