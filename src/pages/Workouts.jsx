@@ -619,7 +619,7 @@ const Workouts = ({ userProfile }) => {
               style={{ width: `${(completedExercises.length / activeWorkout.exercises.length) * 100}%` }}
             />
           </div>
-        </div>
+        </GlassCard>
 
         {/* Current Exercise */}
         {isWorkoutActive && currentExercise < activeWorkout.exercises.length && (
@@ -681,7 +681,7 @@ const Workouts = ({ userProfile }) => {
                 Skip
               </button>
             </div>
-          </div>
+          </GlassCard>
         )}
 
         {/* Workout Complete */}
