@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TrendingUp, Target, Award, Plus, Weight } from 'lucide-react';
+import { GlassCard, GlassButton } from '../components/glass/GlassCard';
 
 const Progress = ({ userProfile }) => {
   const [showAddEntry, setShowAddEntry] = useState(false);
@@ -137,7 +138,7 @@ const Progress = ({ userProfile }) => {
       </div>
 
       {showAddEntry && (
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl mb-8">
+        <GlassCard intensity="strong" className="p-6 mb-8">
           <h3 className="text-xl font-semibold text-white mb-4">Log Your Progress</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
@@ -161,20 +162,20 @@ const Progress = ({ userProfile }) => {
             <button onClick={addProgressEntry} className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity">Save Entry</button>
             <button onClick={() => setShowAddEntry(false)} className="px-6 py-2 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-colors">Cancel</button>
           </div>
-        </div>
+        </GlassCard>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+        <GlassCard intensity="strong" className="p-6 glass-blue">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-300">Current Weight</h3>
             <Weight className="w-5 h-5 text-blue-400" />
           </div>
           <div className="text-2xl font-bold text-white">{currentWeight} lbs</div>
           <div className="text-xs text-gray-400">Goal: {goalWeight} lbs</div>
-        </div>
+        </GlassCard>
         
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+        <GlassCard intensity="strong" className="p-6 glass-green">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-300">Weight Change</h3>
             <TrendingUp className="w-5 h-5 text-green-400" />
@@ -183,18 +184,18 @@ const Progress = ({ userProfile }) => {
             {weightChange !== 0 ? (weightChange > 0 ? '+' : '') + weightChange.toFixed(1) : '0'} lbs
           </div>
           <div className="text-xs text-gray-400">Total change</div>
-        </div>
+        </GlassCard>
         
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+        <GlassCard intensity="strong" className="p-6 glass-orange">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-300">To Goal</h3>
             <Target className="w-5 h-5 text-orange-400" />
           </div>
           <div className="text-2xl font-bold text-white">{Math.abs(currentWeight - goalWeight).toFixed(1)} lbs</div>
           <div className="text-xs text-gray-400">{currentWeight > goalWeight ? 'to lose' : 'to gain'}</div>
-        </div>
+        </GlassCard>
         
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+        <GlassCard intensity="strong" className="p-6 glass-purple">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-300">Goal</h3>
             <Target className="w-5 h-5 text-orange-400" />
@@ -206,11 +207,11 @@ const Progress = ({ userProfile }) => {
               <div className="text-purple-400 font-semibold mt-1">75 Hard Challenge</div>
             )}
           </div>
-        </div>
+        </GlassCard>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+        <GlassCard intensity="strong" className="p-6">
           <h3 className="text-xl font-semibold text-white mb-4">Progress Chart</h3>
           <div className="h-64 bg-gradient-to-br from-orange-500/10 to-pink-500/10 rounded-xl flex items-center justify-center">
             <div className="text-center text-gray-400">
@@ -218,9 +219,9 @@ const Progress = ({ userProfile }) => {
               <p>Interactive chart coming soon!</p>
             </div>
           </div>
-        </div>
+        </GlassCard>
 
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+        <GlassCard intensity="strong" className="p-6">
           <h3 className="text-xl font-semibold text-white mb-4">Achievements</h3>
           <div className="space-y-3">
             {achievements.map((achievement, index) => (
@@ -236,7 +237,7 @@ const Progress = ({ userProfile }) => {
               </div>
             ))}
           </div>
-        </div>
+        </GlassCard>
       </div>
 
       {/* Progress Expectations Section */}
@@ -283,7 +284,7 @@ const Progress = ({ userProfile }) => {
         </div>
       )}
 
-      <div className="mt-8 bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+      <GlassCard intensity="strong" className="p-6 mt-8">
         <h3 className="text-xl font-semibold text-white mb-4">Recent Entries</h3>
         <div className="space-y-3">
           {progressEntries.slice(0, 5).map((entry, index) => (
@@ -297,7 +298,7 @@ const Progress = ({ userProfile }) => {
             </div>
           ))}
         </div>
-      </div>
+      </GlassCard>
     </div>
   );
 };
