@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Menu, X, Home, Activity, Utensils, TrendingUp, User, ShoppingCart } from 'lucide-react';
+import { Menu, X, Home, Activity, Utensils, TrendingUp, User, ShoppingCart, Calendar } from 'lucide-react';
 
 const MobileNavigation = ({ currentPage, onNavigate }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'workouts', label: 'Workouts', icon: Activity },
     { id: 'meals', label: 'Meals', icon: Utensils },
+    { id: 'workouts', label: 'Workouts', icon: Activity },
+    { id: 'weekly-plan', label: 'Weekly Plan', icon: Calendar },
     { id: 'progress', label: 'Progress', icon: TrendingUp },
     { id: 'grocery', label: 'Grocery', icon: ShoppingCart },
     { id: 'profile', label: 'Profile', icon: User },
@@ -70,7 +71,7 @@ const MobileNavigation = ({ currentPage, onNavigate }) => {
       {/* Bottom Navigation for Mobile */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-black/95 backdrop-blur-xl border-t border-white/20" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <nav className="flex justify-around py-2">
-          {navigationItems.slice(0, 5).map((item) => {
+          {navigationItems.slice(0, 6).map((item) => {
             const Icon = item.icon;
             const isActive = currentPage === item.id;
             

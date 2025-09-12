@@ -1,5 +1,8 @@
 import React from 'react';
 import { Target, Weight, Activity, TrendingUp, Zap, Heart, Calendar, Trophy, Droplets, Coffee } from 'lucide-react';
+import WeightLossCalculator from '../components/WeightLossCalculator';
+import { calculateUniversalNutrition, formatNutritionDisplay } from '../utils/nutritionCalculator';
+import { GlassCard } from '../components/glass/GlassCard';
 
 const Dashboard = ({ userProfile, onNavigate }) => {
   if (!userProfile) {
@@ -12,6 +15,10 @@ const Dashboard = ({ userProfile, onNavigate }) => {
     );
   }
 
+  // Get universal nutrition data
+  const nutrition = calculateUniversalNutrition(userProfile);
+  const nutritionDisplay = formatNutritionDisplay(nutrition);
+
   // Calculate BMI
   const calculateBMI = () => {
     if (!userProfile.height || !userProfile.weight) return 0;
@@ -19,97 +26,50 @@ const Dashboard = ({ userProfile, onNavigate }) => {
     return (userProfile.weight / (heightInM * heightInM)).toFixed(1);
   };
 
-  // Calculate BMR (Basal Metabolic Rate)
-  const calculateBMR = () => {
-    if (!userProfile.age || !userProfile.height || !userProfile.weight || !userProfile.gender) return 0;
-    
-    let bmr;
-    if (userProfile.gender === 'male') {
-      bmr = 88.362 + (13.397 * userProfile.weight) + (4.799 * userProfile.height) - (5.677 * userProfile.age);
-    } else {
-      bmr = 447.593 + (9.247 * userProfile.weight) + (3.098 * userProfile.height) - (4.330 * userProfile.age);
-    }
-    
-    return Math.round(bmr);
-  };
-
-  // Calculate daily calorie needs with 700 calorie weekly deficit
-  const calculateDailyCalories = () => {
-    const bmr = calculateBMR();
-    const activityMultipliers = {
-      sedentary: 1.2,
-      light: 1.375,
-      moderate: 1.55,
-      active: 1.725,
-      extra: 1.9
-    };
-    
-    const multiplier = activityMultipliers[userProfile.activityLevel] || 1.55;
-    let dailyCalories = bmr * multiplier;
-    
-    // Adjust based on goal with 700 calorie weekly deficit (100 calories per day)
-    if (userProfile.goal === 'lose_weight') {
-      dailyCalories -= 100; // 100 calorie daily deficit for 700 weekly deficit
-    } else if (userProfile.goal === 'gain_muscle') {
-      dailyCalories += 300; // 300 calorie surplus for muscle gain
-    }
-    
-    return Math.round(dailyCalories);
-  };
+  // Note: Exercise recommendation functions kept for potential future use
+  // but currently not displayed in the UI
 
   // Use consistent weight data sources with Progress page
   const getUserCurrentWeight = () => {
+    // First check saved progress entries
     const savedProgress = JSON.parse(localStorage.getItem('progressEntries') || '[]');
     if (savedProgress.length > 0) {
-      return savedProgress[0].weight; // Most recent progress entry
+      return savedProgress[0].weight;
     }
-    return userProfile?.weightLbs || Math.round((userProfile?.weight || 68) * 2.20462); // Convert from kg to lbs
+    
+    // Then check userProfile for weightLbs (from account creation)
+    if (userProfile?.weightLbs) {
+      return parseFloat(userProfile.weightLbs);
+    }
+    
+    // Check localStorage for saved profile
+    const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+    if (savedProfile.weightLbs) {
+      return parseFloat(savedProfile.weightLbs);
+    }
+    
+    // Use nutrition calculator as fallback
+    return nutrition.currentWeight;
   };
 
   const getUserGoalWeight = () => {
-    return userProfile?.goalWeightLbs || Math.round((userProfile?.goalWeight || getUserCurrentWeight() - 10) * 2.20462);
-  };
-
-  // Calculate protein recommendations
-  const calculateProteinNeeds = () => {
-    if (!userProfile.weight) return 0;
-    const weightInKg = userProfile.weight;
-    
-    // Protein needs based on activity level and goals
-    let proteinMultiplier = 0.8; // Sedentary baseline
-    
-    if (userProfile.activityLevel === 'light') proteinMultiplier = 1.0;
-    else if (userProfile.activityLevel === 'moderate') proteinMultiplier = 1.2;
-    else if (userProfile.activityLevel === 'active') proteinMultiplier = 1.4;
-    else if (userProfile.activityLevel === 'extra') proteinMultiplier = 1.6;
-    
-    // Increase for muscle building goals or 75 Hard
-    if (userProfile.goal === 'gain_muscle' || userProfile.is75Hard) {
-      proteinMultiplier += 0.2;
+    // Check userProfile for goalWeightLbs (from account creation)
+    if (userProfile?.goalWeightLbs) {
+      return parseFloat(userProfile.goalWeightLbs);
     }
     
-    return Math.round(weightInKg * proteinMultiplier);
-  };
-
-  // Calculate water recommendations
-  const calculateWaterNeeds = () => {
-    if (!userProfile.weight) return 8;
-    const weightInKg = userProfile.weight;
-    
-    // Base water needs: 35ml per kg body weight
-    let waterNeeds = Math.round((weightInKg * 35) / 240); // Convert to 8oz glasses
-    
-    // Add extra for activity
-    if (userProfile.activityLevel === 'active' || userProfile.activityLevel === 'extra') {
-      waterNeeds += 2;
+    // Check localStorage for saved profile
+    const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+    if (savedProfile.goalWeightLbs) {
+      return parseFloat(savedProfile.goalWeightLbs);
     }
     
-    // 75 Hard requires a gallon of water (16 cups)
-    if (userProfile.is75Hard) {
-      waterNeeds = 16;
+    // Fallback: convert from kg or calculate default
+    if (userProfile?.goalWeight || savedProfile?.goalWeight) {
+      return Math.round((userProfile?.goalWeight || savedProfile?.goalWeight) * 2.20462);
     }
     
-    return Math.max(waterNeeds, 8); // Minimum 8 glasses
+    return getUserCurrentWeight() - 10; // Default to 10 lbs loss
   };
 
   // Calculate weight loss timeline
@@ -122,8 +82,8 @@ const Dashboard = ({ userProfile, onNavigate }) => {
     
     if (weightToLose <= 0) return null;
     
-    // 700 calorie weekly deficit = 0.2 lbs per week (3500 calories = 1 pound)
-    const weeksToGoal = Math.ceil(weightToLose / 0.2);
+    // Moderate weight loss: 400 calorie deficit = 0.8 lbs per week  
+    const weeksToGoal = Math.ceil(weightToLose / 0.8);
     const monthsToGoal = Math.ceil(weeksToGoal / 4.33);
     
     const targetDate = new Date();
@@ -145,11 +105,11 @@ const Dashboard = ({ userProfile, onNavigate }) => {
   const currentWeight = getUserCurrentWeight();
   const goalWeight = getUserGoalWeight();
   const bmi = calculateBMI();
-  const bmr = calculateBMR();
-  const dailyCalories = calculateDailyCalories();
+  const bmr = nutrition.bmr;
+  const dailyCalories = nutrition.dailyCalories;
   const weightLossTimeline = calculateWeightLossTimeline();
-  const proteinNeeds = calculateProteinNeeds();
-  const waterNeeds = calculateWaterNeeds();
+  const proteinNeeds = nutrition.dailyProtein;
+  const waterNeeds = nutrition.dailyWater;
 
   const getBMICategory = (bmi) => {
     if (bmi < 18.5) return { text: 'Underweight', color: 'text-blue-400' };
@@ -183,17 +143,17 @@ const Dashboard = ({ userProfile, onNavigate }) => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
         {/* Current Weight */}
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+        <GlassCard intensity="strong" className="p-6 glass-blue" hover>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-300">Current Weight</h3>
             <Weight className="w-5 h-5 text-blue-400" />
           </div>
           <div className="text-2xl font-bold text-white">{currentWeight} lbs</div>
           <div className="text-xs text-gray-400">Goal: {goalWeight} lbs</div>
-        </div>
+        </GlassCard>
 
         {/* BMI */}
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+        <GlassCard intensity="strong" className="p-6 glass-green" hover>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-300">BMI</h3>
             <Activity className="w-5 h-5 text-green-400" />
@@ -202,22 +162,22 @@ const Dashboard = ({ userProfile, onNavigate }) => {
           <div className={`text-xs ${bmiCategory.color}`}>
             {bmiCategory.text}
           </div>
-        </div>
+        </GlassCard>
 
         {/* Daily Calories */}
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+        <GlassCard intensity="strong" className="p-6" hover>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-300">Daily Calories</h3>
             <Zap className="w-5 h-5 text-yellow-400" />
           </div>
           <div className="text-2xl font-bold text-white">{dailyCalories}</div>
           <div className="text-xs text-gray-400">
-            BMR: {bmr} cal • 700 weekly deficit
+            {nutritionDisplay.bmrText} • {nutritionDisplay.deficitText}
           </div>
-        </div>
+        </GlassCard>
 
         {/* Goal */}
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+        <GlassCard intensity="strong" className="p-6 glass-orange" hover>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-300">Goal</h3>
             <Target className="w-5 h-5 text-orange-400" />
@@ -229,10 +189,10 @@ const Dashboard = ({ userProfile, onNavigate }) => {
               <div className="text-purple-400 font-semibold mt-1">75 Hard Challenge</div>
             )}
           </div>
-        </div>
+        </GlassCard>
 
         {/* Protein Needs */}
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+        <GlassCard intensity="strong" className="p-6" hover>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-300">Daily Protein</h3>
             <Coffee className="w-5 h-5 text-red-400" />
@@ -241,27 +201,27 @@ const Dashboard = ({ userProfile, onNavigate }) => {
           <div className="text-xs text-gray-400">
             Recommended intake
           </div>
-        </div>
+        </GlassCard>
 
         {/* Water Needs */}
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+        <GlassCard intensity="strong" className="p-6" hover>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-gray-300">Daily Water</h3>
             <Droplets className="w-5 h-5 text-cyan-400" />
           </div>
           <div className="text-2xl font-bold text-white">{waterNeeds}</div>
           <div className="text-xs text-gray-400">
-            glasses (8oz each)
+            glasses (8oz each) • {waterNeeds >= 16 ? '1 gallon' : 'Half gallon'}
             {userProfile.is75Hard && (
-              <div className="text-purple-400 font-semibold">1 gallon for 75 Hard</div>
+              <div className="text-purple-400 font-semibold">75 Hard: 1 gallon</div>
             )}
           </div>
-        </div>
+        </GlassCard>
       </div>
 
       {/* Weight Loss Timeline */}
       {weightLossTimeline && (
-        <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-xl p-6 rounded-2xl border border-purple-500/20 shadow-2xl mb-8">
+        <GlassCard intensity="strong" className="p-6 glass-purple mb-8 glass-glow">
           <div className="flex items-center mb-4">
             <Calendar className="w-6 h-6 text-purple-400 mr-2" />
             <h3 className="text-xl font-bold text-white">Your Weight Loss Journey</h3>
@@ -286,15 +246,19 @@ const Dashboard = ({ userProfile, onNavigate }) => {
           </div>
           <div className="mt-4 p-3 bg-white/10 rounded-xl">
             <p className="text-sm text-gray-300 text-center">
-              Based on a healthy 700-calorie weekly deficit (100 calories per day), you'll lose approximately 0.2 lbs per week.
+              Using our moderate weight loss approach (400 calorie daily deficit), you'll lose approximately 0.8 lbs per week at a sustainable pace.
             </p>
           </div>
-        </div>
+        </GlassCard>
       )}
+
+
+      {/* Weight Loss Calculator */}
+      <WeightLossCalculator userProfile={userProfile} />
 
       {/* Profile Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+        <GlassCard intensity="strong" className="p-6">
           <h3 className="text-xl font-bold text-white mb-4">Your Profile</h3>
           <div className="space-y-3">
             <div className="flex justify-between">
@@ -319,9 +283,9 @@ const Dashboard = ({ userProfile, onNavigate }) => {
               <span className="text-white font-semibold capitalize">{userProfile.activityLevel.replace('_', ' ')}</span>
             </div>
           </div>
-        </div>
+        </GlassCard>
 
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+        <GlassCard intensity="strong" className="p-6">
           <h3 className="text-xl font-bold text-white mb-4">Quick Actions</h3>
           <div className="space-y-3">
             <button 
@@ -353,11 +317,11 @@ const Dashboard = ({ userProfile, onNavigate }) => {
               Track Progress
             </button>
           </div>
-        </div>
+        </GlassCard>
       </div>
 
       {/* Recommendations */}
-      <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+      <GlassCard intensity="strong" className="p-6">
         <div className="flex items-center mb-4">
           <Trophy className="w-6 h-6 text-yellow-400 mr-2" />
           <h3 className="text-xl font-bold text-white">Personalized Recommendations</h3>
@@ -391,7 +355,7 @@ const Dashboard = ({ userProfile, onNavigate }) => {
             </p>
           </div>
         </div>
-      </div>
+      </GlassCard>
     </div>
   );
 };

@@ -1,48 +1,30 @@
 import React, { useState } from 'react';
 import { Calendar, ChefHat, Dumbbell, Clock, Flame, Target, Users, CheckCircle, Plus, ArrowLeft, ArrowRight } from 'lucide-react';
+import { calculateUniversalNutrition, formatNutritionDisplay } from '../utils/nutritionCalculator';
 
 const WeeklyPlan = ({ userProfile, onClose }) => {
   const [currentWeek, setCurrentWeek] = useState(0);
   const [completedItems, setCompletedItems] = useState(new Set());
 
-  // Calculate weekly calorie targets
-  const calculateDailyCalories = () => {
-    if (!userProfile) return 1800;
-    
-    const bmr = userProfile.gender === 'male' 
-      ? 88.362 + (13.397 * userProfile.weight) + (4.799 * userProfile.height) - (5.677 * userProfile.age)
-      : 447.593 + (9.247 * userProfile.weight) + (3.098 * userProfile.height) - (4.330 * userProfile.age);
-    
-    const activityMultiplier = {
-      sedentary: 1.2,
-      light: 1.375,
-      moderate: 1.55,
-      active: 1.725,
-      extra: 1.9
-    }[userProfile.activityLevel] || 1.55;
-    
-    let dailyCalories = bmr * activityMultiplier;
-    if (userProfile.goal === 'lose_weight') dailyCalories -= 100; // 700 weekly deficit
-    
-    return Math.round(dailyCalories);
-  };
-
-  const dailyCalories = calculateDailyCalories();
+  // Get universal nutrition data
+  const nutrition = calculateUniversalNutrition(userProfile);
+  const nutritionDisplay = formatNutritionDisplay(nutrition);
   
-  // Distribute calories across meals
-  const mealCalories = {
-    breakfast: Math.round(dailyCalories * 0.25),
-    lunch: Math.round(dailyCalories * 0.35),
-    dinner: Math.round(dailyCalories * 0.30),
-    snack: Math.round(dailyCalories * 0.10)
-  };
+  const dailyCalories = nutrition.dailyCalories;
+  const dailyProtein = nutrition.dailyProtein;
+  
+  // Use universal meal distribution
+  const mealCalories = nutrition.mealDistribution;
+  const mealProtein = nutrition.proteinDistribution;
 
-  // Sample weekly meal plan
+  // Get meals from localStorage (selected from Meals page) or use defaults
   const getWeeklyMealPlan = () => {
+    const savedMeals = JSON.parse(localStorage.getItem('weeklyMealPlan') || '[]');
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     const mealTypes = ['breakfast', 'lunch', 'dinner', 'snack'];
     
-    const sampleMeals = {
+    // Default/fallback meals if no selections made
+    const defaultMeals = {
       breakfast: [
         'Greek Yogurt Parfait', 'Avocado Toast', 'Protein Smoothie', 'Oatmeal Bowl',
         'Veggie Scramble', 'Overnight Oats', 'Breakfast Quinoa'
@@ -60,23 +42,52 @@ const WeeklyPlan = ({ userProfile, onClose }) => {
         'Trail Mix', 'Cottage Cheese', 'Berries & Nuts'
       ]
     };
-    
-    return days.map((day, dayIndex) => ({
-      day,
-      meals: mealTypes.map((type, typeIndex) => ({
-        type,
-        name: sampleMeals[type][(dayIndex + typeIndex) % sampleMeals[type].length],
-        calories: mealCalories[type],
-        time: type === 'breakfast' ? '8:00 AM' :
-              type === 'lunch' ? '12:30 PM' :
-              type === 'dinner' ? '6:30 PM' : '3:00 PM'
-      }))
-    }));
+
+    return days.map((day, dayIndex) => {
+      const dayMeals = mealTypes.map((type, typeIndex) => {
+        // Try to find a saved meal for this day and meal type
+        const savedMeal = savedMeals.find(meal => 
+          meal.category === type && 
+          Math.floor(savedMeals.indexOf(meal) / mealTypes.length) === dayIndex % Math.ceil(savedMeals.length / mealTypes.length)
+        );
+
+        if (savedMeal) {
+          return {
+            type,
+            name: savedMeal.name,
+            calories: savedMeal.calories || mealCalories[type],
+            protein: savedMeal.protein || mealProtein[type],
+            time: type === 'breakfast' ? '8:00 AM' :
+                  type === 'lunch' ? '12:30 PM' :
+                  type === 'dinner' ? '6:30 PM' : '3:00 PM',
+            isSelected: true // Mark as selected from meals page
+          };
+        }
+
+        // Use default meal if no saved selection
+        return {
+          type,
+          name: defaultMeals[type][(dayIndex + typeIndex) % defaultMeals[type].length],
+          calories: mealCalories[type],
+          protein: mealProtein[type],
+          time: type === 'breakfast' ? '8:00 AM' :
+                type === 'lunch' ? '12:30 PM' :
+                type === 'dinner' ? '6:30 PM' : '3:00 PM',
+          isSelected: false // Default meal
+        };
+      });
+
+      return { day, meals: dayMeals };
+    });
   };
 
-  // Sample weekly workout plan
+  // Get workouts from localStorage (selected from Workouts page) or use defaults
   const getWeeklyWorkoutPlan = () => {
-    const workoutPlans = {
+    const savedWorkouts = JSON.parse(localStorage.getItem('weeklyWorkoutPlan') || '[]');
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    
+    // Default workouts based on user goals
+    const defaultWorkouts = {
       lose_weight: [
         { name: 'HIIT Cardio', duration: '25 mins', type: 'cardio', calories: '300-400' },
         { name: 'Upper Body Strength', duration: '30 mins', type: 'strength', calories: '200-300' },
@@ -97,16 +108,36 @@ const WeeklyPlan = ({ userProfile, onClose }) => {
       ]
     };
 
-    const plan = workoutPlans[userProfile?.goal] || workoutPlans.lose_weight;
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const defaultPlan = defaultWorkouts[userProfile?.goal] || defaultWorkouts.lose_weight;
     
-    return days.map((day, index) => ({
-      day,
-      workout: {
-        ...plan[index],
-        time: index < 5 ? '6:00 AM' : '9:00 AM' // Weekdays early, weekends later
+    return days.map((day, index) => {
+      // Try to find a saved workout for this day
+      const savedWorkout = savedWorkouts[index] || savedWorkouts[index % savedWorkouts.length];
+      
+      if (savedWorkout) {
+        return {
+          day,
+          workout: {
+            name: savedWorkout.name,
+            duration: savedWorkout.duration || savedWorkout.estimatedDuration || '30 mins',
+            type: savedWorkout.category || savedWorkout.type || 'mixed',
+            calories: savedWorkout.caloriesBurned || '200-300',
+            time: index < 5 ? '6:00 AM' : '9:00 AM',
+            isSelected: true // Mark as selected from workouts page
+          }
+        };
       }
-    }));
+
+      // Use default workout if no saved selection
+      return {
+        day,
+        workout: {
+          ...defaultPlan[index],
+          time: index < 5 ? '6:00 AM' : '9:00 AM',
+          isSelected: false // Default workout
+        }
+      };
+    });
   };
 
   const weeklyMeals = getWeeklyMealPlan();
@@ -135,7 +166,8 @@ const WeeklyPlan = ({ userProfile, onClose }) => {
   };
 
   const weekDates = getWeekDates(currentWeek);
-  const totalCaloriesPerDay = Object.values(mealCalories).reduce((sum, cal) => sum + cal, 0);
+  const totalCaloriesPerDay = dailyCalories;
+  const totalProteinPerDay = dailyProtein;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -181,8 +213,27 @@ const WeeklyPlan = ({ userProfile, onClose }) => {
         </div>
       </div>
 
+      {/* Help Text and Actions */}
+      <div className="bg-black/20 backdrop-blur-xl p-4 rounded-xl border border-white/10 mb-8 flex items-center justify-between">
+        <div className="text-sm text-gray-300">
+          <span className="text-green-400">★</span> Selected meals from Meals page • 
+          <span className="text-blue-400 ml-2">★</span> Selected workouts from Workouts page
+        </div>
+        <button 
+          onClick={() => {
+            localStorage.removeItem('weeklyMealPlan');
+            localStorage.removeItem('weeklyWorkoutPlan');
+            // Force re-render by updating state
+            setCompletedItems(new Set());
+          }}
+          className="px-3 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors text-sm font-medium"
+        >
+          Clear Selections
+        </button>
+      </div>
+
       {/* Weekly Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
         <div className="bg-black/40 backdrop-blur-xl p-4 rounded-xl border border-white/20">
           <div className="flex items-center justify-between">
             <div>
@@ -190,6 +241,16 @@ const WeeklyPlan = ({ userProfile, onClose }) => {
               <p className="text-xl font-bold text-white">{totalCaloriesPerDay}</p>
             </div>
             <Flame className="w-8 h-8 text-orange-400" />
+          </div>
+        </div>
+        
+        <div className="bg-black/40 backdrop-blur-xl p-4 rounded-xl border border-white/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-400 text-sm">Daily Protein</p>
+              <p className="text-xl font-bold text-white">{totalProteinPerDay}g</p>
+            </div>
+            <Target className="w-8 h-8 text-red-400" />
           </div>
         </div>
         
@@ -269,8 +330,11 @@ const WeeklyPlan = ({ userProfile, onClose }) => {
                     }`} />
                   </button>
                 </div>
-                <div className="bg-white/5 rounded-lg p-3 mb-2">
-                  <p className="text-white text-sm font-medium">{workoutData.workout.name}</p>
+                <div className={`rounded-lg p-3 mb-2 ${workoutData.workout.isSelected ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-white/5'}`}>
+                  <div className="flex items-center">
+                    <p className="text-white text-sm font-medium">{workoutData.workout.name}</p>
+                    {workoutData.workout.isSelected && <span className="ml-1 text-xs text-blue-400">★</span>}
+                  </div>
                   <div className="flex justify-between text-xs text-gray-400 mt-1">
                     <span>{workoutData.workout.time}</span>
                     <span>{workoutData.workout.duration}</span>
@@ -282,19 +346,22 @@ const WeeklyPlan = ({ userProfile, onClose }) => {
               <div>
                 <h4 className="text-sm font-medium text-gray-300 flex items-center mb-2">
                   <ChefHat className="w-3 h-3 mr-1" />
-                  Meals ({totalCaloriesPerDay} cal)
+                  Meals ({totalCaloriesPerDay} cal • {totalProteinPerDay}g protein)
                 </h4>
                 <div className="space-y-2">
                   {dayData.meals.map((meal, mealIndex) => {
                     const mealId = `meal-${dayIndex}-${mealIndex}`;
                     return (
-                      <div key={mealIndex} className="bg-white/5 rounded-lg p-2">
+                      <div key={mealIndex} className={`rounded-lg p-2 ${meal.isSelected ? 'bg-green-500/10 border border-green-500/20' : 'bg-white/5'}`}>
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <p className="text-white text-xs font-medium">{meal.name}</p>
+                            <div className="flex items-center">
+                              <p className="text-white text-xs font-medium">{meal.name}</p>
+                              {meal.isSelected && <span className="ml-1 text-xs text-green-400">★</span>}
+                            </div>
                             <div className="flex justify-between text-xs text-gray-400">
                               <span className="capitalize">{meal.type}</span>
-                              <span>{meal.calories} cal</span>
+                              <span>{meal.calories} cal • {meal.protein}g protein</span>
                             </div>
                           </div>
                           <button

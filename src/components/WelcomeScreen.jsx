@@ -237,7 +237,7 @@ const WelcomeScreen = ({ onSignIn }) => {
                         <User className="w-4 h-4 mr-2 text-orange-500" />
                         Full Name
                       </Label>
-                      <Input
+                      <input
                         id="name"
                         name="name"
                         type="text"
@@ -245,7 +245,7 @@ const WelcomeScreen = ({ onSignIn }) => {
                         value={formData.name}
                         onChange={handleInputChange}
                         required={isSignUp}
-                        className="h-12 px-4 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-orange-500/20"
+                        className="w-full h-12 px-4 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-200"
                       />
                     </motion.div>
                   )}
@@ -255,7 +255,7 @@ const WelcomeScreen = ({ onSignIn }) => {
                       <Mail className="w-4 h-4 mr-2 text-orange-500" />
                       Email Address
                     </Label>
-                    <Input
+                    <input
                       id="email"
                       name="email"
                       type="email"
@@ -263,7 +263,7 @@ const WelcomeScreen = ({ onSignIn }) => {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className="h-12 px-4 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-orange-500/20"
+                      className="w-full h-12 px-4 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-200"
                     />
                   </div>
                   
@@ -273,7 +273,7 @@ const WelcomeScreen = ({ onSignIn }) => {
                       Password
                     </Label>
                     <div className="relative">
-                      <Input
+                      <input
                         id="password"
                         name="password"
                         type={showPassword ? 'text' : 'password'}
@@ -281,7 +281,7 @@ const WelcomeScreen = ({ onSignIn }) => {
                         value={formData.password}
                         onChange={handleInputChange}
                         required
-                        className="h-12 px-4 pr-12 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-orange-500/20"
+                        className="w-full h-12 px-4 pr-12 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-200"
                       />
                       <button
                         type="button"
@@ -304,7 +304,7 @@ const WelcomeScreen = ({ onSignIn }) => {
                         <Check className="w-4 h-4 mr-2 text-orange-500" />
                         Confirm Password
                       </Label>
-                      <Input
+                      <input
                         id="confirmPassword"
                         name="confirmPassword"
                         type="password"
@@ -312,7 +312,7 @@ const WelcomeScreen = ({ onSignIn }) => {
                         value={formData.confirmPassword}
                         onChange={handleInputChange}
                         required={isSignUp}
-                        className="h-12 px-4 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-orange-500/20"
+                        className="w-full h-12 px-4 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-200"
                       />
                     </motion.div>
                   )}

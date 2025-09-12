@@ -11,6 +11,10 @@ import Settings from './components/Settings';
 import WeeklyPlan from './components/WeeklyPlan';
 import GroceryList from './pages/GroceryList';
 import { LogOut, Settings as SettingsIcon, User as UserIcon } from 'lucide-react';
+import { ThemeProvider, BaseStyles, Button, Box, Text, IconButton } from '@primer/react';
+import { GearIcon, SignOutIcon } from '@primer/octicons-react';
+import GlassNavigation from './components/navigation/GlassNavigation';
+import MobileNav from './components/navigation/MobileNav';
 
 const AppWithAuth = () => {
   const [authState, setAuthState] = useState('loading'); // loading, landing, signin, signup, authenticated
@@ -21,6 +25,11 @@ const AppWithAuth = () => {
     // Check if user is already authenticated
     if (isAuthenticated()) {
       const user = getAuthUser();
+      // Also check for updated profile in localStorage
+      const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+      if (Object.keys(savedProfile).length > 0 && user) {
+        user.profile = { ...user.profile, ...savedProfile };
+      }
       setCurrentUser(user);
       setAuthState('authenticated');
     } else {
@@ -89,102 +98,95 @@ const AppWithAuth = () => {
 
   // Authenticated user interface
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900">
+    <ThemeProvider colorMode="dark">
+      <BaseStyles>
+        <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900">
       {/* Navigation Header */}
       <nav className="bg-black/20 backdrop-blur-sm border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-pink-500 rounded-xl flex items-center justify-center mr-3">
-                <span className="text-lg font-bold text-white">FG</span>
+            <div className="flex items-center space-x-4">
+              {/* Mobile menu button */}
+              <MobileNav currentView={currentView} setCurrentView={setCurrentView} />
+              
+              {/* Logo */}
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-pink-500 rounded-xl flex items-center justify-center mr-3">
+                  <span className="text-lg font-bold text-white">FG</span>
+                </div>
+                <span className="text-white font-semibold text-lg">FitGenius</span>
               </div>
-              <span className="text-white font-semibold text-lg">FitGenius</span>
             </div>
 
-            <div className="hidden md:flex space-x-6">
-              <button
+            {/* New Glass Navigation */}
+            <GlassNavigation currentView={currentView} setCurrentView={setCurrentView} />
+            
+            {/* Original Primer Navigation - Commented out but kept for rollback */}
+            {/* <Box className="hidden md:flex" sx={{ gap: 2 }}>
+              <Button
+                variant={currentView === 'dashboard' ? 'primary' : 'invisible'}
+                size="small"
                 onClick={() => setCurrentView('dashboard')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  currentView === 'dashboard'
-                    ? 'bg-orange-500/20 text-orange-300'
-                    : 'text-gray-300 hover:text-white'
-                }`}
               >
                 Dashboard
-              </button>
-              <button
-                onClick={() => setCurrentView('weekly-plan')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  currentView === 'weekly-plan'
-                    ? 'bg-orange-500/20 text-orange-300'
-                    : 'text-gray-300 hover:text-white'
-                }`}
-              >
-                Weekly Plan
-              </button>
-              <button
+              </Button>
+              <Button
+                variant={currentView === 'workouts' ? 'primary' : 'invisible'}
+                size="small"
                 onClick={() => setCurrentView('workouts')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  currentView === 'workouts'
-                    ? 'bg-orange-500/20 text-orange-300'
-                    : 'text-gray-300 hover:text-white'
-                }`}
               >
                 Workouts
-              </button>
-              <button
+              </Button>
+              <Button
+                variant={currentView === 'meals' ? 'primary' : 'invisible'}
+                size="small"
                 onClick={() => setCurrentView('meals')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  currentView === 'meals'
-                    ? 'bg-orange-500/20 text-orange-300'
-                    : 'text-gray-300 hover:text-white'
-                }`}
               >
                 Meals
-              </button>
-              <button
+              </Button>
+              <Button
+                variant={currentView === 'weekly-plan' ? 'primary' : 'invisible'}
+                size="small"
+                onClick={() => setCurrentView('weekly-plan')}
+              >
+                Weekly Plan
+              </Button>
+              <Button
+                variant={currentView === 'progress' ? 'primary' : 'invisible'}
+                size="small"
                 onClick={() => setCurrentView('progress')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  currentView === 'progress'
-                    ? 'bg-orange-500/20 text-orange-300'
-                    : 'text-gray-300 hover:text-white'
-                }`}
               >
                 Progress
-              </button>
-              <button
+              </Button>
+              <Button
+                variant={currentView === 'grocery-list' ? 'primary' : 'invisible'}
+                size="small"
                 onClick={() => setCurrentView('grocery-list')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  currentView === 'grocery-list'
-                    ? 'bg-orange-500/20 text-orange-300'
-                    : 'text-gray-300 hover:text-white'
-                }`}
               >
                 Grocery List
-              </button>
-            </div>
+              </Button>
+            </Box> */}
 
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center text-white">
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', color: 'fg.default' }}>
                 <UserIcon className="w-5 h-5 mr-2" />
-                <span className="text-sm">{currentUser?.profile?.name || 'User'}</span>
-              </div>
+                <Text fontSize={1}>{currentUser?.profile?.name || 'User'}</Text>
+              </Box>
               
-              <button
+              <IconButton
+                aria-label="Settings"
+                icon={GearIcon}
+                variant="invisible"
                 onClick={() => setCurrentView('settings')}
-                className="p-2 text-gray-400 hover:text-white transition-colors"
-              >
-                <SettingsIcon className="w-5 h-5" />
-              </button>
+              />
               
-              <button
+              <IconButton
+                aria-label="Sign Out"
+                icon={SignOutIcon}
+                variant="invisible"
                 onClick={handleSignOut}
-                className="p-2 text-gray-400 hover:text-white transition-colors"
-                title="Sign Out"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            </div>
+              />
+            </Box>
           </div>
         </div>
       </nav>
@@ -228,7 +230,9 @@ const AppWithAuth = () => {
           <GroceryList userProfile={currentUser?.profile} />
         )}
       </main>
-    </div>
+        </div>
+      </BaseStyles>
+    </ThemeProvider>
   );
 };
 

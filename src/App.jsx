@@ -297,8 +297,8 @@ function App() {
     }
   };
 
-  // Calculate daily calories based on activity level
-  const calculateDailyCalories = (bmr, activityLevel) => {
+  // Calculate daily calories with aggressive 15 lbs/month weight loss model
+  const calculateDailyCalories = (bmr, activityLevel, goal, gender) => {
     const activityMultipliers = {
       sedentary: 1.2,
       light: 1.375,
@@ -306,7 +306,25 @@ function App() {
       active: 1.725,
       very_active: 1.9
     };
-    return Math.round(bmr * activityMultipliers[activityLevel]);
+    
+    const maintenanceCalories = Math.round(bmr * activityMultipliers[activityLevel]);
+    
+    // Moderate weight loss model: 400 calorie daily deficit
+    // 400 calories × 7 days = 2,800 calories per week  
+    // 2,800 ÷ 3,500 = 0.8 lbs per week
+    if (goal === 'weight_loss' || goal === 'lose_weight') {
+      let targetCalories = maintenanceCalories - 400; // 400 calorie daily deficit
+      
+      // Safety minimum: Don't go below 1,200 calories for women or 1,500 for men
+      const minimumCalories = gender === 'male' ? 1500 : 1200;
+      targetCalories = Math.max(targetCalories, minimumCalories);
+      
+      return Math.round(targetCalories);
+    } else if (goal === 'gain_muscle' || goal === 'muscle_gain') {
+      return Math.round(maintenanceCalories + 300); // 300 calorie surplus for muscle gain
+    }
+    
+    return maintenanceCalories; // Maintenance for other goals
   };
 
   // Handle profile setup completion
@@ -317,7 +335,7 @@ function App() {
       profileData.age, 
       profileData.gender
     );
-    const dailyCalories = calculateDailyCalories(bmr, profileData.activityLevel);
+    const dailyCalories = calculateDailyCalories(bmr, profileData.activityLevel, profileData.fitness_goal, profileData.gender);
     
     const completeProfile = {
       ...profileData,

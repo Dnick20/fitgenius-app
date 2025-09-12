@@ -49,9 +49,17 @@ export const signUp = async (userData) => {
         gender: userData.gender,
         height: userData.height,
         weight: userData.weight,
+        heightFeet: userData.heightFeet,
+        heightInches: userData.heightInches,
+        weightLbs: userData.weightLbs,
+        goalWeightLbs: userData.goalWeightLbs,
         activityLevel: userData.activityLevel,
+        activity_level: userData.activityLevel, // For compatibility
         goal: userData.goal,
-        goalWeight: userData.goalWeight
+        fitness_goal: userData.goal, // For compatibility
+        goalWeight: userData.goalWeight,
+        workoutTypes: userData.workoutTypes,
+        is75Hard: userData.is75Hard
       }
     };
     
@@ -62,6 +70,9 @@ export const signUp = async (userData) => {
     users.push(newUser);
     saveUsers(users);
     setCurrentUser(sessionUser);
+    
+    // Also save profile data separately for easy access across app
+    localStorage.setItem('userProfile', JSON.stringify(sessionUser.profile));
     
     return {
       success: true,
@@ -99,6 +110,9 @@ export const signIn = async (email, password) => {
     const sessionUser = { ...user };
     delete sessionUser.password;
     setCurrentUser(sessionUser);
+    
+    // Also save profile data separately for easy access across app
+    localStorage.setItem('userProfile', JSON.stringify(sessionUser.profile));
     
     return {
       success: true,

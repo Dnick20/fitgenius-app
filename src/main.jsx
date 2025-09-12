@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import AppWithAuth from './AppWithAuth.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import './index.css'
+import './styles/glass.css'
 
 // Determine which app to use based on environment variable
 const appMode = import.meta.env.VITE_APP_MODE || 'production';

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Utensils, Clock, Users, Heart, Plus, Search, Filter, CheckCircle, ChefHat, Flame, Star, Sparkles, Zap } from 'lucide-react';
+import { calculateUniversalNutrition, formatNutritionDisplay } from '../utils/nutritionCalculator';
 
 const Meals = ({ userProfile }) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -11,6 +12,7 @@ const Meals = ({ userProfile }) => {
   const [selectedAllergies, setSelectedAllergies] = useState([]);
   const [selectedMeals, setSelectedMeals] = useState([]);
   const [showWeeklyPlanUpdate, setShowWeeklyPlanUpdate] = useState(false);
+  const [expandedMeal, setExpandedMeal] = useState(null);
   const [aiMealRequirements, setAiMealRequirements] = useState({
     mealType: 'lunch',
     calories: '',
@@ -815,6 +817,10 @@ const Meals = ({ userProfile }) => {
     return meals[goal] || meals.maintain;
   };
 
+  // Get universal nutrition data
+  const nutrition = calculateUniversalNutrition(userProfile);
+  const nutritionDisplay = formatNutritionDisplay(nutrition);
+
   // Include user-generated meals from localStorage
   const userGeneratedMeals = JSON.parse(localStorage.getItem('userGeneratedMeals') || '[]');
   
@@ -906,45 +912,16 @@ const Meals = ({ userProfile }) => {
   const calculateMealCalories = () => {
     if (!userProfile) return 400;
     
-    // Calculate daily calories
-    const bmr = userProfile.gender === 'male' 
-      ? 88.362 + (13.397 * userProfile.weight) + (4.799 * userProfile.height) - (5.677 * userProfile.age)
-      : 447.593 + (9.247 * userProfile.weight) + (3.098 * userProfile.height) - (4.330 * userProfile.age);
-    
-    const activityMultiplier = userProfile.activityLevel === 'sedentary' ? 1.2 : 
-                              userProfile.activityLevel === 'light' ? 1.375 :
-                              userProfile.activityLevel === 'moderate' ? 1.55 :
-                              userProfile.activityLevel === 'active' ? 1.725 : 1.9;
-                              
-    let dailyCalories = bmr * activityMultiplier;
-    if (userProfile.goal === 'lose_weight') dailyCalories -= 100; // 700 weekly deficit
-    
-    // 75 Hard considerations - cleaner eating, more structured meals
-    if (userProfile.is75Hard) {
-      // Encourage balanced, whole food meals
-      dailyCalories = Math.round(dailyCalories * 0.95); // Slightly lower for clean eating
-    }
-    
-    // Distribute calories based on goal and meal type
-    const mealDistribution = {
-      breakfast: userProfile.goal === 'gain_muscle' ? 0.3 : 0.25,
-      lunch: 0.35,
-      dinner: userProfile.goal === 'lose_weight' ? 0.25 : 0.30,
-      snack: userProfile.goal === 'gain_muscle' ? 0.15 : 0.10
-    };
-    
-    return Math.round(dailyCalories * (mealDistribution[aiMealRequirements.mealType] || 0.25));
+    // Use universal nutrition distribution
+    const mealDistribution = nutrition.mealDistribution;
+    return mealDistribution[aiMealRequirements.mealType] || Math.round(nutrition.dailyCalories * 0.25);
   };
 
   // Calculate protein needs for meals
   const calculateMealProtein = (calories) => {
-    let proteinPercentage = 0.25; // 25% default
-    
-    if (userProfile?.goal === 'gain_muscle') proteinPercentage = 0.35; // 35% for muscle building
-    else if (userProfile?.goal === 'lose_weight') proteinPercentage = 0.30; // 30% for weight loss
-    else if (userProfile?.is75Hard) proteinPercentage = 0.30; // Higher protein for 75 Hard
-    
-    return Math.round((calories * proteinPercentage) / 4); // 4 calories per gram protein
+    // Use universal protein distribution
+    const proteinDistribution = nutrition.proteinDistribution;
+    return proteinDistribution[aiMealRequirements.mealType] || Math.round(nutrition.dailyProtein * 0.25);
   };
 
   const generateMealName = (requirements) => {
@@ -1319,10 +1296,8 @@ const Meals = ({ userProfile }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Daily Calories</p>
-                <p className="text-xl font-bold text-white">
-                  {userProfile.goal === 'lose_weight' ? '1800' : 
-                   userProfile.goal === 'gain_muscle' ? '2600' : '2200'}
-                </p>
+                <p className="text-xl font-bold text-white">{nutritionDisplay.dailyCalories}</p>
+                <p className="text-xs text-gray-500">{nutritionDisplay.deficitText}</p>
               </div>
               <Flame className="w-8 h-8 text-orange-400" />
             </div>
@@ -1332,9 +1307,8 @@ const Meals = ({ userProfile }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Protein Goal</p>
-                <p className="text-xl font-bold text-white">
-                  {Math.round((userProfile.weightLbs || userProfile.weight * 2.2) * 0.8)}g
-                </p>
+                <p className="text-xl font-bold text-white">{nutritionDisplay.dailyProtein}</p>
+                <p className="text-xs text-gray-500">Based on activity level</p>
               </div>
               <div className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center text-white font-bold">P</div>
             </div>
@@ -1557,85 +1531,224 @@ const Meals = ({ userProfile }) => {
         </div>
       )}
 
-      {/* Meals Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredMeals.map(meal => (
-          <div key={meal.id} className="bg-black/40 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl overflow-hidden hover:transform hover:scale-105 transition-all duration-200">
-            {/* Meal Image Placeholder */}
-            <div className="h-48 bg-gradient-to-br from-orange-500/20 to-pink-500/20 flex items-center justify-center">
-              <div className="text-6xl">{getCategoryIcon(meal.category)}</div>
+      {/* Meals Grid - Compact Design with Expandable Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filteredMeals.map(meal => {
+          const isExpanded = expandedMeal === meal.id;
+          
+          return (
+            <div 
+              key={meal.id} 
+              className={`bg-gradient-to-br from-gray-900/80 via-purple-900/40 to-gray-900/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl overflow-hidden transition-all duration-500 group cursor-pointer ${
+                isExpanded 
+                  ? 'md:col-span-2 lg:col-span-2 xl:col-span-2 shadow-2xl border-orange-500/50 scale-105 z-10 relative' 
+                  : 'hover:shadow-2xl hover:scale-102'
+              }`}
+              onClick={() => setExpandedMeal(isExpanded ? null : meal.id)}
+            >
+              {/* Compact Header with Image Icon */}
+              <div className="relative p-4 pb-2">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start space-x-3 flex-1 min-w-0">
+                    {/* Icon */}
+                    <div className={`bg-gradient-to-br from-orange-500/30 to-pink-500/30 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                      isExpanded ? 'w-16 h-16' : 'w-12 h-12'
+                    }`}>
+                      <div className={`transition-all duration-300 ${isExpanded ? 'text-4xl' : 'text-2xl'}`}>
+                        {getCategoryIcon(meal.category)}
+                      </div>
+                    </div>
+                    
+                    {/* Title and Category */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className={`font-bold text-white group-hover:text-orange-300 transition-colors ${
+                        isExpanded ? 'text-2xl' : 'text-lg truncate'
+                      }`}>
+                        {meal.name}
+                      </h3>
+                      <p className={`text-gray-400 capitalize ${isExpanded ? 'text-base' : 'text-sm'}`}>
+                        {meal.category}
+                      </p>
+                      {isExpanded && (
+                        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-400">
+                          <div className="flex items-center">
+                            <Clock className="w-4 h-4 mr-1" />
+                            <span>{meal.prepTime}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Users className="w-4 h-4 mr-1" />
+                            <span>{meal.servings} serving{meal.servings > 1 ? 's' : ''}</span>
+                          </div>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(meal.difficulty)}`}>
+                            {meal.difficulty}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Heart Icon */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      savedMeals.includes(meal.id) ? removeSavedMeal(meal.id) : saveMeal(meal.id);
+                    }}
+                    className="p-1 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+                  >
+                    <Heart className={`w-4 h-4 ${savedMeals.includes(meal.id) ? 'fill-current text-pink-400' : 'text-gray-400 hover:text-pink-300'}`} />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Description */}
+              <div className="px-4 pb-3">
+                <p className={`text-gray-300 leading-relaxed ${
+                  isExpanded ? 'text-base' : 'text-sm line-clamp-2'
+                }`}>
+                  {meal.description}
+                </p>
+              </div>
+              
+              {/* Nutrition Grid */}
+              <div className="px-4 pb-3">
+                <div className={`grid text-center transition-all duration-300 ${
+                  isExpanded ? 'grid-cols-4 gap-4' : 'grid-cols-4 gap-3'
+                }`}>
+                  <div className={`bg-orange-500/10 rounded-lg transition-all duration-300 ${
+                    isExpanded ? 'p-4' : 'p-2'
+                  }`}>
+                    <div className={`text-orange-400 font-bold ${isExpanded ? 'text-2xl' : 'text-sm'}`}>
+                      {meal.calories}
+                    </div>
+                    <div className={`text-gray-500 ${isExpanded ? 'text-sm' : 'text-xs'}`}>cal</div>
+                  </div>
+                  <div className={`bg-blue-500/10 rounded-lg transition-all duration-300 ${
+                    isExpanded ? 'p-4' : 'p-2'
+                  }`}>
+                    <div className={`text-blue-400 font-bold ${isExpanded ? 'text-2xl' : 'text-sm'}`}>
+                      {meal.protein}g
+                    </div>
+                    <div className={`text-gray-500 ${isExpanded ? 'text-sm' : 'text-xs'}`}>protein</div>
+                  </div>
+                  <div className={`bg-green-500/10 rounded-lg transition-all duration-300 ${
+                    isExpanded ? 'p-4' : 'p-2'
+                  }`}>
+                    <div className={`text-green-400 font-bold ${isExpanded ? 'text-2xl' : 'text-sm'}`}>
+                      {meal.carbs}g
+                    </div>
+                    <div className={`text-gray-500 ${isExpanded ? 'text-sm' : 'text-xs'}`}>carbs</div>
+                  </div>
+                  <div className={`bg-purple-500/10 rounded-lg transition-all duration-300 ${
+                    isExpanded ? 'p-4' : 'p-2'
+                  }`}>
+                    <div className={`text-purple-400 font-bold ${isExpanded ? 'text-2xl' : 'text-sm'}`}>
+                      {meal.fat}g
+                    </div>
+                    <div className={`text-gray-500 ${isExpanded ? 'text-sm' : 'text-xs'}`}>fat</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Expanded Content */}
+              {isExpanded && (
+                <div className="px-4 pb-4 animate-fadeIn">
+                  {/* Ingredients Preview */}
+                  <div className="mb-4">
+                    <h4 className="text-white font-semibold mb-2 flex items-center">
+                      <ChefHat className="w-4 h-4 mr-2" />
+                      Key Ingredients
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      {meal.ingredients?.slice(0, 6).map((ingredient, index) => (
+                        <div key={index} className="flex items-center bg-white/5 p-2 rounded-lg">
+                          <CheckCircle className="w-3 h-3 text-green-400 mr-2 flex-shrink-0" />
+                          <span className="text-gray-300 truncate">{ingredient}</span>
+                        </div>
+                      )) || (
+                        <div className="col-span-2 text-gray-400 text-center py-2">
+                          Ingredients not available
+                        </div>
+                      )}
+                    </div>
+                    {meal.ingredients?.length > 6 && (
+                      <p className="text-gray-400 text-xs mt-2 text-center">
+                        +{meal.ingredients.length - 6} more ingredients
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Additional Info */}
+                  {meal.isAIGenerated && (
+                    <div className="mb-4 p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                      <div className="flex items-center text-purple-400 text-sm">
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        AI Generated Recipe - Tailored to your goals
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Time and Difficulty - Only show if not expanded */}
+              {!isExpanded && (
+                <div className="px-4 pb-3 flex items-center justify-between text-xs">
+                  <div className="flex items-center text-gray-400">
+                    <Clock className="w-3 h-3 mr-1" />
+                    <span>{meal.prepTime}</span>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(meal.difficulty)}`}>
+                    {meal.difficulty}
+                  </span>
+                </div>
+              )}
+              
+              {/* Action Buttons */}
+              <div className="px-4 pb-4">
+                <div className={`flex transition-all duration-300 ${isExpanded ? 'gap-3' : 'gap-2'}`}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleMealSelection(meal);
+                    }}
+                    className={`flex-1 rounded-lg font-medium transition-all flex items-center justify-center ${
+                      isExpanded ? 'py-3 px-4 text-base' : 'py-2 px-3 text-sm'
+                    } ${
+                      selectedMeals.some(m => m.id === meal.id)
+                        ? 'bg-green-500/20 text-green-400 border border-green-400/50'
+                        : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                    }`}
+                  >
+                    <Plus className={`mr-1 ${isExpanded ? 'w-4 h-4' : 'w-3 h-3'}`} />
+                    {selectedMeals.some(m => m.id === meal.id) ? 'Selected' : 'Select'}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowRecipe(meal);
+                    }}
+                    className={`flex-1 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center justify-center ${
+                      isExpanded ? 'py-3 px-4 text-base' : 'py-2 px-3 text-sm'
+                    }`}
+                  >
+                    <ChefHat className={`mr-1 ${isExpanded ? 'w-4 h-4' : 'w-3 h-3'}`} />
+                    {isExpanded ? 'Full Recipe' : 'Recipe'}
+                  </button>
+                  {isExpanded && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpandedMeal(null);
+                      }}
+                      className="px-4 py-3 bg-white/10 text-gray-300 rounded-lg font-medium hover:bg-white/20 transition-colors text-base"
+                    >
+                      Collapse
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
-            
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h3 className="text-xl font-semibold text-white mb-1">{meal.name}</h3>
-                  <p className="text-sm text-gray-400 capitalize">{meal.category}</p>
-                </div>
-                <button
-                  onClick={() => savedMeals.includes(meal.id) ? removeSavedMeal(meal.id) : saveMeal(meal.id)}
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                >
-                  <Heart className={`w-5 h-5 ${savedMeals.includes(meal.id) ? 'fill-current text-pink-400' : 'text-gray-400'}`} />
-                </button>
-              </div>
-              
-              <p className="text-gray-300 text-sm mb-4">{meal.description}</p>
-              
-              {/* Nutrition Summary */}
-              <div className="grid grid-cols-4 gap-2 mb-4 text-xs">
-                <div className="text-center">
-                  <div className="text-orange-400 font-semibold">{meal.calories}</div>
-                  <div className="text-gray-500">cal</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-blue-400 font-semibold">{meal.protein}g</div>
-                  <div className="text-gray-500">protein</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-green-400 font-semibold">{meal.carbs}g</div>
-                  <div className="text-gray-500">carbs</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-purple-400 font-semibold">{meal.fat}g</div>
-                  <div className="text-gray-500">fat</div>
-                </div>
-              </div>
-              
-              {/* Meal Info */}
-              <div className="flex items-center justify-between mb-4 text-sm text-gray-400">
-                <div className="flex items-center">
-                  <Clock className="w-4 h-4 mr-1" />
-                  <span>{meal.prepTime}</span>
-                </div>
-                <span className={`px-2 py-1 rounded-full text-xs ${getDifficultyColor(meal.difficulty)}`}>
-                  {meal.difficulty}
-                </span>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => toggleMealSelection(meal)}
-                  className={`py-3 rounded-xl font-semibold transition-all flex items-center justify-center ${
-                    selectedMeals.some(m => m.id === meal.id)
-                      ? 'bg-green-500/20 text-green-400 border border-green-400'
-                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                  }`}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  {selectedMeals.some(m => m.id === meal.id) ? 'Selected' : 'Select'}
-                </button>
-                <button
-                  onClick={() => setShowRecipe(meal)}
-                  className="bg-gradient-to-r from-orange-500 to-pink-500 text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity flex items-center justify-center"
-                >
-                  <ChefHat className="w-4 h-4 mr-2" />
-                  Recipe
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {filteredMeals.length === 0 && (

@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "FitGenius Grocery",
+    "slug": "fitgenius-grocery",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f0f23"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fitgenius.grocery",
+      "buildNumber": "1",
+      "infoPlist": {
+        "UILaunchStoryboardName": "SplashScreen"
+      },
+      "icon": "./assets/icon.png"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f0f23"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.fitgenius.grocery",
+      "versionCode": 1
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "scheme": "fitgenius-grocery",
+    "extra": {
+      "eas": {
+        "projectId": "fitgenius-grocery"
+      }
+    },
+    "owner": "fitgenius",
+    "privacy": "public",
+    "description": "Smart grocery planning with AI-powered price comparison across Walmart, Kroger, and Whole Foods. Create 7-day meal plans and get the best deals on your weekly groceries.",
+    "githubUrl": "https://github.com/fitgenius/grocery-app",
+    "primaryColor": "#ff6b35",
+    "platforms": ["ios", "android", "web"]
+  }
+}
