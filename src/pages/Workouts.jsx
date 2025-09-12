@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Dumbbell, Play, Clock, Target, Plus, CheckCircle, RotateCcw, Flame, Trophy, Timer } from 'lucide-react';
+import { GlassCard, GlassButton } from '../components/glass/GlassCard';
 
 const Workouts = ({ userProfile }) => {
   const [activeWorkout, setActiveWorkout] = useState(null);
@@ -589,7 +590,7 @@ const Workouts = ({ userProfile }) => {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Active Workout Header */}
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl mb-6">
+        <GlassCard intensity="strong" className="p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-2xl font-bold text-white">{activeWorkout.name}</h1>
@@ -622,7 +623,7 @@ const Workouts = ({ userProfile }) => {
 
         {/* Current Exercise */}
         {isWorkoutActive && currentExercise < activeWorkout.exercises.length && (
-          <div className="bg-black/40 backdrop-blur-xl p-8 rounded-2xl border border-white/20 shadow-2xl mb-6">
+          <GlassCard intensity="strong" className="p-8 mb-6 glass-glow">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-white mb-2">
                 {activeWorkout.exercises[currentExercise].name}
@@ -685,7 +686,7 @@ const Workouts = ({ userProfile }) => {
 
         {/* Workout Complete */}
         {!isWorkoutActive && completedExercises.length === activeWorkout.exercises.length && !showCalorieBonus && (
-          <div className="bg-black/40 backdrop-blur-xl p-8 rounded-2xl border border-white/20 shadow-2xl text-center">
+          <GlassCard intensity="strong" className="p-8 text-center glass-green">
             <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-white mb-2">Workout Complete!</h2>
             <p className="text-gray-300 mb-6">Great job finishing {activeWorkout.name}!</p>
@@ -704,11 +705,11 @@ const Workouts = ({ userProfile }) => {
                 Back to Workouts
               </button>
             </div>
-          </div>
+          </GlassCard>
         )}
 
         {/* Exercise List */}
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+        <GlassCard intensity="strong" className="p-6">
           <h3 className="text-xl font-bold text-white mb-4">Exercise List</h3>
           <div className="space-y-3">
             {activeWorkout.exercises.map((exercise, index) => (
@@ -735,7 +736,7 @@ const Workouts = ({ userProfile }) => {
               </div>
             ))}
           </div>
-        </div>
+        </GlassCard>
       </div>
     );
   }
@@ -802,7 +803,7 @@ const Workouts = ({ userProfile }) => {
       {/* Workout Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredWorkouts.map(workout => (
-          <div key={workout.id} className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-2xl">
+          <GlassCard key={workout.id} intensity="strong" className="p-6" hover>
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center">
                 <Dumbbell className={`w-6 h-6 mr-3 ${getTypeColor(workout.type)}`} />

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Utensils, Clock, Users, Heart, Plus, Search, Filter, CheckCircle, ChefHat, Flame, Star, Sparkles, Zap } from 'lucide-react';
 import { calculateUniversalNutrition, formatNutritionDisplay } from '../utils/nutritionCalculator';
+import { GlassCard, GlassButton } from '../components/glass/GlassCard';
 
 const Meals = ({ userProfile }) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -1068,7 +1069,7 @@ const Meals = ({ userProfile }) => {
           ← Back to Meals
         </button>
 
-        <div className="bg-black/40 backdrop-blur-xl p-8 rounded-2xl border border-white/20 shadow-2xl">
+        <GlassCard intensity="strong" className="p-8 glass-glow">
           {/* Recipe Header */}
           <div className="flex items-start justify-between mb-6">
             <div className="flex-1">
@@ -1161,7 +1162,7 @@ const Meals = ({ userProfile }) => {
               {savedMeals.includes(showRecipe.id) ? 'Saved to Favorites' : 'Save Recipe'}
             </button>
           </div>
-        </div>
+        </GlassCard>
       </div>
     );
   }
@@ -1234,7 +1235,7 @@ const Meals = ({ userProfile }) => {
 
       {/* Allergies Selector */}
       {showAllergiesSelector && (
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-xl border border-white/20 mb-6">
+        <GlassCard intensity="strong" className="p-6 mb-6">
           <h3 className="text-lg font-semibold text-white mb-4">Select Your Allergies</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             {commonAllergies.map(allergy => (
@@ -1258,7 +1259,7 @@ const Meals = ({ userProfile }) => {
               </p>
             </div>
           )}
-        </div>
+        </GlassCard>
       )}
 
       {/* Selected Meals */}
@@ -1292,7 +1293,7 @@ const Meals = ({ userProfile }) => {
       {/* Quick Stats */}
       {userProfile && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-black/40 backdrop-blur-xl p-4 rounded-xl border border-white/20">
+          <GlassCard intensity="normal" className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Daily Calories</p>
@@ -1303,7 +1304,7 @@ const Meals = ({ userProfile }) => {
             </div>
           </div>
           
-          <div className="bg-black/40 backdrop-blur-xl p-4 rounded-xl border border-white/20">
+          <GlassCard intensity="normal" className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Protein Goal</p>
@@ -1314,7 +1315,7 @@ const Meals = ({ userProfile }) => {
             </div>
           </div>
           
-          <div className="bg-black/40 backdrop-blur-xl p-4 rounded-xl border border-white/20">
+          <GlassCard intensity="normal" className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Saved Recipes</p>
@@ -1324,7 +1325,7 @@ const Meals = ({ userProfile }) => {
             </div>
           </div>
           
-          <div className="bg-black/40 backdrop-blur-xl p-4 rounded-xl border border-white/20">
+          <GlassCard intensity="normal" className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Available Meals</p>
@@ -1332,7 +1333,7 @@ const Meals = ({ userProfile }) => {
               </div>
               <Utensils className="w-8 h-8 text-green-400" />
             </div>
-          </div>
+          </GlassCard>
         </div>
       )}
 
@@ -1473,7 +1474,7 @@ const Meals = ({ userProfile }) => {
             </button>
           </div>
           
-          <div className="bg-black/40 backdrop-blur-xl rounded-xl border border-white/20 p-4">
+          <GlassCard intensity="normal" className="p-4" hover>
             <div className="flex items-start justify-between mb-3">
               <div>
                 <h3 className="text-xl font-semibold text-white mb-1">{generatedMeal.name}</h3>

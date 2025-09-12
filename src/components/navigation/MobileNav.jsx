@@ -29,12 +29,12 @@ const MobileNav = ({ currentView, setCurrentView }) => {
         <>
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[998] md:hidden"
             onClick={() => setIsOpen(false)}
           />
           
           {/* Menu panel */}
-          <div className="fixed top-0 left-0 h-full w-72 bg-gradient-to-br from-purple-900/95 via-indigo-900/95 to-blue-900/95 backdrop-blur-xl z-50 md:hidden transform transition-transform duration-300">
+          <div className="fixed top-0 left-0 h-full w-72 bg-gradient-to-br from-purple-900/95 via-indigo-900/95 to-blue-900/95 backdrop-blur-xl z-[999] md:hidden transform transition-transform duration-300 shadow-2xl">
             <div className="p-4">
               {/* Header */}
               <div className="flex items-center justify-between mb-8">

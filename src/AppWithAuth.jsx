@@ -15,6 +15,7 @@ import { ThemeProvider, BaseStyles, Button, Box, Text, IconButton } from '@prime
 import { GearIcon, SignOutIcon } from '@primer/octicons-react';
 import GlassNavigation from './components/navigation/GlassNavigation';
 import MobileNav from './components/navigation/MobileNav';
+import { UserDataProvider } from './context/UserDataContext';
 
 const AppWithAuth = () => {
   const [authState, setAuthState] = useState('loading'); // loading, landing, signin, signup, authenticated
@@ -100,7 +101,8 @@ const AppWithAuth = () => {
   return (
     <ThemeProvider colorMode="dark">
       <BaseStyles>
-        <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900">
+        <UserDataProvider>
+          <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900">
       {/* Navigation Header */}
       <nav className="bg-black/20 backdrop-blur-sm border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -230,7 +232,8 @@ const AppWithAuth = () => {
           <GroceryList userProfile={currentUser?.profile} />
         )}
       </main>
-        </div>
+          </div>
+        </UserDataProvider>
       </BaseStyles>
     </ThemeProvider>
   );
