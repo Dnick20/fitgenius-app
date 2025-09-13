@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Dumbbell, Play, Clock, Target, Plus, CheckCircle, RotateCcw, Flame, Trophy, Timer } from 'lucide-react';
 import { GlassCard, GlassButton } from '../components/glass/GlassCard';
 
-const Workouts = ({ userProfile }) => {
+const Workouts = ({ userProfile, onContinue, nextPageName, isLastPage }) => {
   const [activeWorkout, setActiveWorkout] = useState(null);
   const [completedExercises, setCompletedExercises] = useState([]);
   const [currentExercise, setCurrentExercise] = useState(0);
@@ -871,6 +871,18 @@ const Workouts = ({ userProfile }) => {
         <div className="text-center py-12">
           <Dumbbell className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <p className="text-gray-400">No workouts found for the selected filter.</p>
+        </div>
+      )}
+
+      {/* Continue Button */}
+      {!isLastPage && onContinue && nextPageName && (
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={onContinue}
+            className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+          >
+            Continue to {nextPageName} →
+          </button>
         </div>
       )}
     </div>

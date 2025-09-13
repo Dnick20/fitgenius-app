@@ -3,7 +3,7 @@ import { Utensils, Clock, Users, Heart, Plus, Search, Filter, CheckCircle, ChefH
 import { calculateUniversalNutrition, formatNutritionDisplay } from '../utils/nutritionCalculator';
 import { GlassCard, GlassButton } from '../components/glass/GlassCard';
 
-const Meals = ({ userProfile }) => {
+const Meals = ({ userProfile, onContinue, nextPageName, isLastPage }) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [savedMeals, setSavedMeals] = useState([]);
@@ -1812,6 +1812,18 @@ const Meals = ({ userProfile }) => {
           <Utensils className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-400 mb-2">No meals found</h3>
           <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+        </div>
+      )}
+
+      {/* Continue Button */}
+      {!isLastPage && onContinue && nextPageName && (
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={onContinue}
+            className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+          >
+            Continue to {nextPageName} →
+          </button>
         </div>
       )}
     </div>

@@ -67,6 +67,45 @@ const AppWithAuth = () => {
     setAuthState('signup');
   };
 
+  // Navigation flow order
+  const navigationFlow = [
+    'dashboard',
+    'workouts', 
+    'meals',
+    'weekly-plan',
+    'progress',
+    'grocery-list'
+  ];
+
+  const handleContinueToNext = () => {
+    const currentIndex = navigationFlow.indexOf(currentView);
+    if (currentIndex < navigationFlow.length - 1) {
+      setCurrentView(navigationFlow[currentIndex + 1]);
+    }
+  };
+
+  const getNextPageName = () => {
+    const currentIndex = navigationFlow.indexOf(currentView);
+    if (currentIndex < navigationFlow.length - 1) {
+      const nextView = navigationFlow[currentIndex + 1];
+      const pageNames = {
+        'dashboard': 'Dashboard',
+        'workouts': 'Workouts',
+        'meals': 'Meals', 
+        'weekly-plan': 'Weekly Plan',
+        'progress': 'Progress',
+        'grocery-list': 'Grocery List'
+      };
+      return pageNames[nextView];
+    }
+    return null;
+  };
+
+  const isLastPage = () => {
+    const currentIndex = navigationFlow.indexOf(currentView);
+    return currentIndex === navigationFlow.length - 1;
+  };
+
   if (authState === 'loading') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center">
@@ -199,6 +238,9 @@ const AppWithAuth = () => {
           <Dashboard 
             userProfile={currentUser?.profile} 
             onNavigate={setCurrentView}
+            onContinue={handleContinueToNext}
+            nextPageName={getNextPageName()}
+            isLastPage={isLastPage()}
           />
         )}
         
@@ -206,19 +248,37 @@ const AppWithAuth = () => {
           <WeeklyPlan 
             userProfile={currentUser?.profile} 
             onClose={() => setCurrentView('dashboard')}
+            onContinue={handleContinueToNext}
+            nextPageName={getNextPageName()}
+            isLastPage={isLastPage()}
           />
         )}
         
         {currentView === 'workouts' && (
-          <Workouts userProfile={currentUser?.profile} />
+          <Workouts 
+            userProfile={currentUser?.profile}
+            onContinue={handleContinueToNext}
+            nextPageName={getNextPageName()}
+            isLastPage={isLastPage()}
+          />
         )}
         
         {currentView === 'meals' && (
-          <Meals userProfile={currentUser?.profile} />
+          <Meals 
+            userProfile={currentUser?.profile}
+            onContinue={handleContinueToNext}
+            nextPageName={getNextPageName()}
+            isLastPage={isLastPage()}
+          />
         )}
         
         {currentView === 'progress' && (
-          <Progress userProfile={currentUser?.profile} />
+          <Progress 
+            userProfile={currentUser?.profile}
+            onContinue={handleContinueToNext}
+            nextPageName={getNextPageName()}
+            isLastPage={isLastPage()}
+          />
         )}
         
         {currentView === 'settings' && (
@@ -229,7 +289,12 @@ const AppWithAuth = () => {
         )}
         
         {currentView === 'grocery-list' && (
-          <GroceryList userProfile={currentUser?.profile} />
+          <GroceryList 
+            userProfile={currentUser?.profile}
+            onContinue={handleContinueToNext}
+            nextPageName={getNextPageName()}
+            isLastPage={isLastPage()}
+          />
         )}
       </main>
           </div>

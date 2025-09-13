@@ -3,7 +3,7 @@ import { Calendar, ChefHat, Dumbbell, Clock, Flame, Target, Users, CheckCircle, 
 import { calculateUniversalNutrition, formatNutritionDisplay } from '../utils/nutritionCalculator';
 import { GlassCard, GlassButton } from './glass/GlassCard'
 
-const WeeklyPlan = ({ userProfile, onClose }) => {
+const WeeklyPlan = ({ userProfile, onClose, onContinue, nextPageName, isLastPage }) => {
   const [currentWeek, setCurrentWeek] = useState(0);
   const [completedItems, setCompletedItems] = useState(new Set());
 
@@ -427,6 +427,18 @@ const WeeklyPlan = ({ userProfile, onClose }) => {
               <li className="flex items-center"><span className="mr-3 text-green-400">•</span>Celebrate small wins along the way</li>
             </ul>
           </GlassCard>
+
+          {/* Continue Button */}
+          {!isLastPage && onContinue && nextPageName && (
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={onContinue}
+                className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                Continue to {nextPageName} →
+              </button>
+            </div>
+          )}
         </div>
       </GlassCard>
     </div>

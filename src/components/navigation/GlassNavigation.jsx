@@ -26,10 +26,10 @@ const GlassNavigation = ({ currentView, setCurrentView }) => {
           onClick={() => setCurrentView(key)}
           className={`
             px-3 py-2 rounded-xl font-medium transition-all duration-200
-            flex items-center space-x-2 relative
+            flex items-center space-x-2 relative backdrop-blur-md
             ${currentView === key 
-              ? 'bg-white text-gray-900 shadow-lg shadow-white/25 transform scale-105' 
-              : 'text-white/80 hover:text-white hover:bg-white/10 border border-transparent'
+              ? 'bg-white text-gray-900 shadow-lg shadow-white/25 transform scale-105 border border-white/20' 
+              : 'text-white bg-black/30 hover:text-white hover:bg-white/20 border border-white/20 shadow-lg'
             }
           `}
           style={{

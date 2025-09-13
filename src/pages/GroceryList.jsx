@@ -3,7 +3,7 @@ import { ShoppingCart, Users, MapPin, TrendingDown, DollarSign, Check, ChevronLe
 import GroceryIntelligenceBot from '../bots/GroceryIntelligenceBot';
 import { GlassCard, GlassButton } from '../components/glass/GlassCard';
 
-const GroceryList = ({ userProfile }) => {
+const GroceryList = ({ userProfile, onContinue, nextPageName, isLastPage }) => {
   const [peopleCount, setPeopleCount] = useState(1); // Default to 1
   const [groceryList, setGroceryList] = useState([]);
   const [checkedItems, setCheckedItems] = useState(new Set());

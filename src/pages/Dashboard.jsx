@@ -4,7 +4,7 @@ import WeightLossCalculator from '../components/WeightLossCalculator';
 import { calculateUniversalNutrition, formatNutritionDisplay } from '../utils/nutritionCalculator';
 import { GlassCard } from '../components/glass/GlassCard';
 
-const Dashboard = ({ userProfile, onNavigate }) => {
+const Dashboard = ({ userProfile, onNavigate, onContinue, nextPageName, isLastPage }) => {
   if (!userProfile) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -356,6 +356,18 @@ const Dashboard = ({ userProfile, onNavigate }) => {
           </div>
         </div>
       </GlassCard>
+
+      {/* Continue Button */}
+      {!isLastPage && onContinue && nextPageName && (
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={onContinue}
+            className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+          >
+            Continue to {nextPageName} →
+          </button>
+        </div>
+      )}
     </div>
   );
 };

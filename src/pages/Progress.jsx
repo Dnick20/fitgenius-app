@@ -3,7 +3,7 @@ import { TrendingUp, Target, Award, Plus, Weight, Calculator } from 'lucide-reac
 import { GlassCard, GlassButton } from '../components/glass/GlassCard';
 import { useUserData } from '../context/UserDataContext';
 
-const Progress = ({ userProfile }) => {
+const Progress = ({ userProfile, onContinue, nextPageName, isLastPage }) => {
   const { currentWeight: contextWeight, updateWeight, addProgressEntry: addToContext } = useUserData() || {};
   const [showAddEntry, setShowAddEntry] = useState(false);
   const [progressEntries, setProgressEntries] = useState(() => {
@@ -478,6 +478,18 @@ const Progress = ({ userProfile }) => {
           ))}
         </div>
       </GlassCard>
+
+      {/* Continue Button */}
+      {!isLastPage && onContinue && nextPageName && (
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={onContinue}
+            className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+          >
+            Continue to {nextPageName} →
+          </button>
+        </div>
+      )}
     </div>
   );
 };
