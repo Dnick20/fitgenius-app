@@ -15,6 +15,7 @@
   "dependencies": {
     "@primer/octicons-react": "^19.18.0",
     "@primer/react": "^37.31.0",
+    "@supabase/supabase-js": "^2.57.4",
     "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
     "date-fns": "^4.1.0",
