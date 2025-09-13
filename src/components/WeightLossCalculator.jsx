@@ -201,15 +201,25 @@ const WeightLossCalculator = ({ userProfile }) => {
     // Save calculator settings
     localStorage.setItem('weightLossCalculatorSettings', JSON.stringify(inputs));
     
-    // Update user's daily calorie target based on the calculator results
+    // Update user's daily calorie target and weight universally
     if (results && results.targetCalories) {
       const existingProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
       const updatedProfile = {
         ...existingProfile,
+        // Universal weight updates
+        weightLbs: inputs.currentWeight,
+        goalWeightLbs: inputs.goalWeight,
+        // Calculator results
         daily_calorie_target: results.targetCalories,
         calorie_deficit: inputs.dailyDeficit,
         target_timeline_months: inputs.monthsTimeline,
-        calculator_goal_weight: inputs.goalWeight
+        calculator_goal_weight: inputs.goalWeight,
+        // Update macros universally
+        daily_protein_target: results.macros?.protein || 0,
+        daily_carbs_target: results.macros?.carbs || 0,
+        daily_fat_target: results.macros?.fat || 0,
+        bmr: results.bmr,
+        tdee: results.tdee
       };
       localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
       
@@ -217,6 +227,9 @@ const WeightLossCalculator = ({ userProfile }) => {
       if (userProfile?.onUpdate) {
         userProfile.onUpdate(updatedProfile);
       }
+      
+      // Force window reload to update all components with new data
+      window.location.reload();
     }
     
     setIsSaved(true);

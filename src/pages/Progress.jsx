@@ -11,10 +11,7 @@ const Progress = ({ userProfile, onContinue, nextPageName, isLastPage }) => {
     if (saved) {
       return JSON.parse(saved);
     }
-    return [
-      { date: '2024-09-01', weight: 180, bodyFat: 18, notes: 'Starting my fitness journey!' },
-      { date: '2024-08-25', weight: 182, bodyFat: 19, notes: 'Feeling motivated' }
-    ];
+    return [];
   });
 
   const [newEntry, setNewEntry] = useState({
@@ -130,28 +127,33 @@ const Progress = ({ userProfile, onContinue, nextPageName, isLastPage }) => {
 
   // Use consistent weight data sources with Dashboard
   const getUserCurrentWeight = () => {
-    // Use context weight if available
-    if (contextWeight) {
-      return contextWeight;
-    }
-    
-    // Otherwise check saved progress entries
+    // First check recent progress entries (most current)
     if (progressEntries.length > 0) {
       return progressEntries[0].weight;
     }
     
-    // Then check userProfile for weightLbs
+    // Then check userProfile for current weight
     if (userProfile?.weightLbs) {
       return parseFloat(userProfile.weightLbs);
     }
     
-    // Finally check localStorage
+    // Then check localStorage for user profile
     const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
     if (savedProfile.weightLbs) {
       return parseFloat(savedProfile.weightLbs);
     }
     
-    return Math.round((userProfile?.weight || savedProfile?.weight || 68) * 2.20462);
+    // Convert from kg if needed
+    if (userProfile?.weight) {
+      return Math.round(parseFloat(userProfile.weight) * 2.20462);
+    }
+    
+    if (savedProfile?.weight) {
+      return Math.round(parseFloat(savedProfile.weight) * 2.20462);
+    }
+    
+    // Last resort: return a reasonable default
+    return 150;
   };
 
   const getUserGoalWeight = () => {
@@ -210,10 +212,10 @@ const Progress = ({ userProfile, onContinue, nextPageName, isLastPage }) => {
   const progressExpectations = getProgressExpectations();
 
   const achievements = [
-    { title: 'First Workout', description: 'Completed your first workout', earned: true, icon: '🏋️' },
     { title: 'Goal Getter', description: 'Lost 5 pounds', earned: weightChange <= -5, icon: '🎯' },
     { title: 'Steady Progress', description: 'Lost 5+ pounds consistently', earned: weightChange <= -5, icon: '⚡' },
-    { title: 'Consistency King', description: 'Logged progress for 7 days straight', earned: progressEntries.length >= 7, icon: '👑' }
+    { title: 'Consistency King', description: 'Logged progress for 7 days straight', earned: progressEntries.length >= 7, icon: '👑' },
+    { title: 'Data Tracker', description: 'Logged your first progress entry', earned: progressEntries.length >= 1, icon: '📊' }
   ];
 
   return (
@@ -351,7 +353,6 @@ const Progress = ({ userProfile, onContinue, nextPageName, isLastPage }) => {
           </div>
           <div className="text-2xl font-bold text-white">{currentWeight} lbs</div>
           <div className="text-xs text-gray-400">Goal: {goalWeight} lbs</div>
-          <div className="text-xs text-green-400 mt-1">Context: {contextWeight || 'Loading...'} lbs</div>
         </GlassCard>
         
         <GlassCard intensity="strong" className="p-6 glass-green">

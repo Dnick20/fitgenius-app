@@ -113,7 +113,7 @@ export const sanitizeInput = (input) => {
   
   return input
     .replace(/[<>]/g, '') // Remove HTML tags
-    .trim()
+    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
     .slice(0, 1000); // Limit length
 };
 

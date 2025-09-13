@@ -258,55 +258,58 @@ const SignUp = ({ onSuccess, onSignInClick }) => {
 
           {/* Step 2: Personal Information */}
           {step === 2 && (
-            <>
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Age</label>
+                  <label className="block text-sm font-medium text-white mb-3">Age</label>
                   <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-300" />
                     <select
                       name="age"
                       value={formData.age}
                       onChange={handleChange}
-                      className={`w-full pl-10 pr-4 py-3 bg-white/10 border ${errors.age ? 'border-red-500' : 'border-white/20'} rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500`}
+                      className={`w-full pl-10 pr-4 py-4 bg-white/25 border ${errors.age ? 'border-red-500' : 'border-white/40'} rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none`}
+                      style={{color: 'white', backgroundColor: 'rgba(255,255,255,0.25)', WebkitAppearance: 'none'}}
                     >
-                      <option value="">Select Age</option>
+                      <option value="" style={{color: '#ddd', backgroundColor: '#444', fontWeight: 'bold'}}>Select Age</option>
                       {Array.from({length: 79}, (_, i) => i + 12).map(age => (
-                        <option key={age} value={age}>{age}</option>
+                        <option key={age} value={age} style={{color: '#fff', backgroundColor: '#444', fontWeight: 'bold'}}>{age}</option>
                       ))}
                     </select>
                   </div>
-                  {errors.age && <p className="text-red-400 text-sm mt-1">{errors.age}</p>}
+                  {errors.age && <p className="text-red-400 text-sm mt-2">{errors.age}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Gender</label>
+                  <label className="block text-sm font-medium text-white mb-3">Gender</label>
                   <select
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-4 py-4 bg-white/25 border border-white/40 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none"
+                    style={{color: 'white', backgroundColor: 'rgba(255,255,255,0.25)', WebkitAppearance: 'none'}}
                   >
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
+                    <option value="male" style={{color: '#fff', backgroundColor: '#444', fontWeight: 'bold'}}>Male</option>
+                    <option value="female" style={{color: '#fff', backgroundColor: '#444', fontWeight: 'bold'}}>Female</option>
+                    <option value="other" style={{color: '#fff', backgroundColor: '#444', fontWeight: 'bold'}}>Other</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Height</label>
-                <div className="grid grid-cols-2 gap-2">
+                <label className="block text-sm font-medium text-white mb-3 text-center">Height</label>
+                <div className="grid grid-cols-2 gap-4">
                   <div className="relative">
-                    <Ruler className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Ruler className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-300" />
                     <select
                       name="heightFeet"
                       value={formData.heightFeet}
                       onChange={handleChange}
-                      className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full pl-10 pr-4 py-4 bg-white/25 border border-white/40 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none"
+                      style={{color: 'white', backgroundColor: 'rgba(255,255,255,0.25)', WebkitAppearance: 'none'}}
                     >
                       {Array.from({length: 5}, (_, i) => i + 4).map(feet => (
-                        <option key={feet} value={feet}>{feet}' </option>
+                        <option key={feet} value={feet} style={{color: '#fff', backgroundColor: '#444', fontWeight: 'bold'}}>{feet}'</option>
                       ))}
                     </select>
                   </div>
@@ -315,54 +318,57 @@ const SignUp = ({ onSuccess, onSignInClick }) => {
                       name="heightInches"
                       value={formData.heightInches}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-4 py-4 bg-white/25 border border-white/40 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none"
+                      style={{color: 'white', backgroundColor: 'rgba(255,255,255,0.25)', WebkitAppearance: 'none'}}
                     >
                       {Array.from({length: 12}, (_, i) => i).map(inches => (
-                        <option key={inches} value={inches}>{inches}"</option>
+                        <option key={inches} value={inches} style={{color: '#fff', backgroundColor: '#444', fontWeight: 'bold'}}>{inches}"</option>
                       ))}
                     </select>
                   </div>
                 </div>
-                {errors.height && <p className="text-red-400 text-sm mt-1">{errors.height}</p>}
+                {errors.height && <p className="text-red-400 text-sm mt-2 text-center">{errors.height}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Weight (lbs)</label>
-                <div className="relative">
-                  <Weight className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <label className="block text-sm font-medium text-white mb-3 text-center">Weight (lbs)</label>
+                <div className="relative max-w-sm mx-auto">
+                  <Weight className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-300" />
                   <input
                     type="number"
                     name="weight"
                     value={formData.weight}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 bg-white/10 border ${errors.weight ? 'border-red-500' : 'border-white/20'} rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500`}
+                    className={`w-full pl-10 pr-4 py-4 bg-white/15 border ${errors.weight ? 'border-red-500' : 'border-white/30'} rounded-xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-center`}
                     placeholder="150"
                     min="50"
                     max="800"
+                    style={{backgroundColor: 'rgba(255,255,255,0.15)'}}
                   />
                 </div>
-                {errors.weight && <p className="text-red-400 text-sm mt-1">{errors.weight}</p>}
+                {errors.weight && <p className="text-red-400 text-sm mt-2 text-center">{errors.weight}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Activity Level</label>
+                <label className="block text-sm font-medium text-white mb-3 text-center">Activity Level</label>
                 <div className="relative">
-                  <Activity className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Activity className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-300" />
                   <select
                     name="activityLevel"
                     value={formData.activityLevel}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full pl-10 pr-4 py-4 bg-white/25 border border-white/40 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none"
+                    style={{color: 'white', backgroundColor: 'rgba(255,255,255,0.25)', WebkitAppearance: 'none'}}
                   >
-                    <option value="sedentary">Sedentary (little or no exercise)</option>
-                    <option value="light">Lightly Active (1-3 days/week)</option>
-                    <option value="moderate">Moderately Active (3-5 days/week)</option>
-                    <option value="active">Very Active (6-7 days/week)</option>
-                    <option value="extra">Extra Active (athlete)</option>
+                    <option value="sedentary" style={{color: '#fff', backgroundColor: '#444', fontWeight: 'bold'}}>Sedentary (little or no exercise)</option>
+                    <option value="light" style={{color: '#fff', backgroundColor: '#444', fontWeight: 'bold'}}>Lightly Active (1-3 days/week)</option>
+                    <option value="moderate" style={{color: '#fff', backgroundColor: '#444', fontWeight: 'bold'}}>Moderately Active (3-5 days/week)</option>
+                    <option value="active" style={{color: '#fff', backgroundColor: '#444', fontWeight: 'bold'}}>Very Active (6-7 days/week)</option>
+                    <option value="extra" style={{color: '#fff', backgroundColor: '#444', fontWeight: 'bold'}}>Extra Active (athlete)</option>
                   </select>
                 </div>
               </div>
-            </>
+            </div>
           )}
 
           {/* Step 3: Fitness Goals */}

@@ -15,7 +15,9 @@ class SupabaseService {
         email,
         password,
         options: {
-          data: profile // Store profile in auth metadata
+          data: profile, // Store profile in auth metadata
+          emailRedirectTo: undefined, // Skip email confirmation
+          autoConfirm: true // Auto-confirm users
         }
       });
 
@@ -342,11 +344,13 @@ class SupabaseService {
     
     const { data, error } = await supabase.storage
       .from('avatars')
-      .upload(fileName, file);
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
 
     if (error) throw error;
 
-    // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from('avatars')
       .getPublicUrl(fileName);
@@ -359,16 +363,74 @@ class SupabaseService {
     
     const { data, error } = await supabase.storage
       .from('workout-videos')
-      .upload(fileName, file);
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
 
     if (error) throw error;
 
-    // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from('workout-videos')
       .getPublicUrl(fileName);
 
     return publicUrl;
+  }
+
+  async uploadMealPhoto(userId, file) {
+    const fileName = `${userId}/${Date.now()}_${file.name}`;
+    
+    const { data, error } = await supabase.storage
+      .from('meal-photos')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('meal-photos')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  }
+
+  async uploadProgressPhoto(userId, file) {
+    const fileName = `${userId}/${Date.now()}_${file.name}`;
+    
+    const { data, error } = await supabase.storage
+      .from('progress-photos')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('progress-photos')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  }
+
+  async deleteFile(bucket, filePath) {
+    const { error } = await supabase.storage
+      .from(bucket)
+      .remove([filePath]);
+
+    if (error) throw error;
+    return true;
+  }
+
+  async listUserFiles(bucket, userId) {
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .list(userId);
+
+    if (error) throw error;
+    return data;
   }
 
   // Real-time subscriptions

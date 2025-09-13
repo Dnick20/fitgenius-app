@@ -1,4 +1,8 @@
 /* FitGenius Global Styles */
+@import "./styles/timeline.css";
+@import "./styles/cards.css"; 
+@import "./styles/responsive.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

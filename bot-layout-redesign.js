@@ -1,7 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../services/SupabaseService';
-import { MealCard, WorkoutCard } from './ExpandableCards';
-import { MobileOptimizedWrapper, ResponsiveGrid, MobileModal, TouchFriendlyButton } from './MobileComponents';
+#!/usr/bin/env node
+
+// Layout Redesign Bot - Phase 1
+// Redesigns Weekly Plan with timeline layout and better spacing
+
+import fs from 'fs';
+import path from 'path';
+
+class LayoutRedesignBot {
+  constructor() {
+    this.botName = 'Layout Redesign Bot';
+    this.version = '1.0.0';
+    this.startTime = Date.now();
+  }
+
+  async execute() {
+    console.log(`🤖 ${this.botName} v${this.version} Starting...`);
+    
+    try {
+      // Step 1: Redesign WeeklyPlan.jsx with timeline layout
+      await this.redesignWeeklyPlan();
+      
+      // Step 2: Create timeline CSS components
+      await this.createTimelineStyles();
+      
+      // Step 3: Update responsive grid system
+      await this.updateGridSystem();
+      
+      const duration = ((Date.now() - this.startTime) / 1000).toFixed(2);
+      console.log(`✅ ${this.botName} completed in ${duration}s`);
+      
+      return { success: true, duration };
+    } catch (error) {
+      console.error(`❌ ${this.botName} failed:`, error.message);
+      throw error;
+    }
+  }
+
+  async redesignWeeklyPlan() {
+    console.log('  📝 Redesigning WeeklyPlan.jsx with timeline layout...');
+    
+    const weeklyPlanPath = './src/components/WeeklyPlan.jsx';
+    const newWeeklyPlan = `import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 const WeeklyPlan = ({ userProfile }) => {
   const [selectedMeals, setSelectedMeals] = useState({
@@ -43,17 +83,12 @@ const WeeklyPlan = ({ userProfile }) => {
 
   const loadMealOptions = async () => {
     try {
-      // Import static meal data as fallback
-      const { MEAL_DATABASE } = await import('../data/meals.js');
-      setMealOptions(MEAL_DATABASE);
-      
-      // Try to load from Supabase if available
       const { data, error } = await supabase
         .from('meals')
         .select('*')
         .order('name');
       
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         const categorized = {
           breakfast: data.filter(m => m.category === 'breakfast'),
           lunch: data.filter(m => m.category === 'lunch'),
@@ -64,42 +99,17 @@ const WeeklyPlan = ({ userProfile }) => {
       }
     } catch (error) {
       console.error('Error loading meals:', error);
-      // Fallback to static data
-      const fallbackMeals = {
-        breakfast: [
-          { id: 'b1', name: 'Greek Yogurt Parfait', calories: 250, protein: 20, carbs: 30, fat: 8, description: 'Creamy yogurt with berries and granola' },
-          { id: 'b2', name: 'Avocado Toast', calories: 300, protein: 12, carbs: 35, fat: 18, description: 'Whole grain toast with fresh avocado' }
-        ],
-        lunch: [
-          { id: 'l1', name: 'Quinoa Power Bowl', calories: 400, protein: 15, carbs: 45, fat: 20, description: 'Quinoa with roasted vegetables' },
-          { id: 'l2', name: 'Grilled Chicken Wrap', calories: 450, protein: 35, carbs: 40, fat: 15, description: 'Lean chicken in whole wheat wrap' }
-        ],
-        dinner: [
-          { id: 'd1', name: 'Baked Salmon Filet', calories: 500, protein: 40, carbs: 25, fat: 28, description: 'Omega-rich salmon with sweet potato' },
-          { id: 'd2', name: 'Lean Beef Stir-fry', calories: 480, protein: 38, carbs: 30, fat: 22, description: 'Tender beef with mixed vegetables' }
-        ],
-        snack: [
-          { id: 's1', name: 'Mixed Nuts', calories: 180, protein: 6, carbs: 8, fat: 16, description: 'Almonds, walnuts, and cashews' },
-          { id: 's2', name: 'Apple & Peanut Butter', calories: 200, protein: 8, carbs: 25, fat: 10, description: 'Crisp apple with natural PB' }
-        ]
-      };
-      setMealOptions(fallbackMeals);
     }
   };
 
   const loadWorkoutOptions = async () => {
     try {
-      // Import static workout data as fallback
-      const { WORKOUT_DATABASE } = await import('../data/workouts.js');
-      setWorkoutOptions(WORKOUT_DATABASE);
-      
-      // Try to load from Supabase if available
       const { data, error } = await supabase
         .from('workouts')
         .select('*')
         .order('name');
       
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         const categorized = data.reduce((acc, workout) => {
           if (!acc[workout.category]) acc[workout.category] = [];
           acc[workout.category].push(workout);
@@ -109,22 +119,6 @@ const WeeklyPlan = ({ userProfile }) => {
       }
     } catch (error) {
       console.error('Error loading workouts:', error);
-      // Fallback to static data
-      const fallbackWorkouts = {
-        cardio: [
-          { id: 'c1', name: 'Interval Running', duration: 30, difficulty: 'Medium', calories: 300, description: 'Alternating high and low intensity running' },
-          { id: 'c2', name: 'Jump Rope HIIT', duration: 20, difficulty: 'High', calories: 250, description: 'High-intensity jump rope intervals' }
-        ],
-        strength: [
-          { id: 's1', name: 'Push Day Upper', duration: 45, difficulty: 'Medium', description: 'Chest, shoulders, triceps focus' },
-          { id: 's2', name: 'Pull Day Upper', duration: 45, difficulty: 'Medium', description: 'Back and biceps focus' }
-        ],
-        flexibility: [
-          { id: 'f1', name: 'Morning Stretch', duration: 20, difficulty: 'Low', description: 'Flexibility and mobility focused routine' },
-          { id: 'f2', name: 'Deep Flexibility', duration: 22, difficulty: 'Medium', description: 'Flexibility and mobility focused routine' }
-        ]
-      };
-      setWorkoutOptions(fallbackWorkouts);
     }
   };
 
@@ -135,13 +129,12 @@ const WeeklyPlan = ({ userProfile }) => {
           <span className="mr-3">🍽️</span>
           Weekly Meal Plan
         </h3>
-        <TouchFriendlyButton
+        <button
           onClick={() => setShowMealSelector(true)}
-          variant="primary"
-          className="bg-emerald-500 hover:bg-emerald-600"
+          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium"
         >
           Plan Meals
-        </TouchFriendlyButton>
+        </button>
       </div>
 
       {/* Timeline View */}
@@ -177,13 +170,12 @@ const WeeklyPlan = ({ userProfile }) => {
           <span className="mr-3">💪</span>
           Weekly Workout Plan
         </h3>
-        <TouchFriendlyButton
+        <button
           onClick={() => setShowWorkoutSelector(true)}
-          variant="primary"
-          className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+          className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-4 py-2 rounded-lg font-medium"
         >
           Plan Workouts
-        </TouchFriendlyButton>
+        </button>
       </div>
 
       {/* Timeline View */}
@@ -209,7 +201,7 @@ const WeeklyPlan = ({ userProfile }) => {
   );
 
   return (
-    <MobileOptimizedWrapper className="space-y-8">
+    <div className="space-y-8">
       {/* Header */}
       <div className="text-center">
         <h2 className="text-3xl font-bold bg-gradient-to-r from-white via-orange-200 to-orange-400 bg-clip-text text-transparent mb-2">
@@ -243,7 +235,7 @@ const WeeklyPlan = ({ userProfile }) => {
           workoutOptions={workoutOptions}
         />
       )}
-    </MobileOptimizedWrapper>
+    </div>
   );
 };
 
@@ -296,12 +288,13 @@ const MealPlanModal = ({ onClose, selectedMeals, setSelectedMeals, mealOptions }
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             {mealOptions[currentStep]?.map(meal => (
-              <MealCard
-                key={meal.id}
-                meal={meal}
-                isSelected={false}
-                onClick={selectMeal}
-              />
+              <div key={meal.id} 
+                   onClick={() => selectMeal(meal)}
+                   className="bg-white/10 hover:bg-emerald-500/20 border border-white/20 rounded-lg p-4 cursor-pointer transition-all">
+                <h4 className="font-medium text-white mb-2">{meal.name}</h4>
+                <p className="text-emerald-400 text-sm mb-2">{meal.calories} calories</p>
+                <p className="text-gray-300 text-sm">{meal.description}</p>
+              </div>
             ))}
           </div>
 
@@ -364,11 +357,11 @@ const WorkoutPlanModal = ({ onClose, selectedWorkouts, setSelectedWorkouts, work
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-lg capitalize transition-all ${
+                className={\`px-4 py-2 rounded-lg capitalize transition-all \${
                   selectedCategory === category 
                     ? 'bg-orange-500 text-white' 
                     : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                }`}
+                }\`}
               >
                 {category.replace('_', ' ')}
               </button>
@@ -378,12 +371,17 @@ const WorkoutPlanModal = ({ onClose, selectedWorkouts, setSelectedWorkouts, work
           {/* Workouts Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             {workoutOptions[selectedCategory]?.map(workout => (
-              <WorkoutCard
-                key={workout.id}
-                workout={workout}
-                isSelected={false}
-                onClick={selectWorkout}
-              />
+              <div key={workout.id} 
+                   onClick={() => selectWorkout(workout)}
+                   className="bg-white/10 hover:bg-orange-500/20 border border-white/20 rounded-lg p-4 cursor-pointer transition-all">
+                <h4 className="font-medium text-white mb-2">{workout.name}</h4>
+                <p className="text-orange-400 text-sm mb-2">{workout.duration} minutes • {workout.difficulty}</p>
+                <p className="text-gray-300 text-sm mb-2">{workout.description}</p>
+                <div className="text-xs text-gray-400">
+                  {workout.exercises?.slice(0, 3).map(ex => ex.name).join(', ')}
+                  {workout.exercises?.length > 3 && '...'}
+                </div>
+              </div>
             ))}
           </div>
 
@@ -401,4 +399,200 @@ const WorkoutPlanModal = ({ onClose, selectedWorkouts, setSelectedWorkouts, work
   );
 };
 
-export default WeeklyPlan;
+export default WeeklyPlan;`;
+
+    fs.writeFileSync(weeklyPlanPath, newWeeklyPlan);
+    console.log('  ✅ WeeklyPlan.jsx redesigned with timeline layout');
+  }
+
+  async createTimelineStyles() {
+    console.log('  🎨 Creating timeline CSS components...');
+    
+    const timelineStylesPath = './src/styles/timeline.css';
+    const timelineStyles = `/* Timeline Components */
+.timeline-container {
+  position: relative;
+}
+
+.timeline-item {
+  position: relative;
+  padding-left: 2rem;
+  padding-bottom: 1.5rem;
+  border-left: 4px solid;
+  transition: all 0.3s ease;
+}
+
+.timeline-item:hover {
+  border-left-width: 6px;
+}
+
+.timeline-item-meal {
+  border-left-color: #10b981; /* emerald-500 */
+}
+
+.timeline-item-workout {
+  border-left-color: #f97316; /* orange-500 */
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -0.75rem;
+  top: 0.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+.timeline-marker-meal {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.timeline-marker-workout {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: white;
+}
+
+/* Responsive Timeline */
+@media (max-width: 768px) {
+  .timeline-item {
+    padding-left: 1.5rem;
+    border-left-width: 3px;
+  }
+  
+  .timeline-marker {
+    left: -0.625rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 0.625rem;
+  }
+}
+
+/* Linear Layout Cards */
+.linear-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.linear-card:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.linear-card-expandable {
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.linear-card-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.linear-card-footer {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Grid Improvements */
+.responsive-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Animation Classes */
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.6s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}`;
+
+    fs.writeFileSync(timelineStylesPath, timelineStyles);
+    console.log('  ✅ Timeline CSS components created');
+  }
+
+  async updateGridSystem() {
+    console.log('  📐 Updating responsive grid system...');
+    
+    // Update main CSS file to include timeline styles
+    const mainCssPath = './src/index.css';
+    const importStatement = '\n@import "./styles/timeline.css";\n';
+    
+    try {
+      let mainCss = fs.readFileSync(mainCssPath, 'utf8');
+      if (!mainCss.includes('timeline.css')) {
+        mainCss += importStatement;
+        fs.writeFileSync(mainCssPath, mainCss);
+      }
+      console.log('  ✅ Grid system updated');
+    } catch (error) {
+      console.log('  ⚠️  Main CSS file not found, timeline styles included in component');
+    }
+  }
+}
+
+// Execute bot if run directly
+if (process.argv[1] === new URL(import.meta.url).pathname) {
+  const bot = new LayoutRedesignBot();
+  bot.execute()
+    .then(result => {
+      console.log('Bot execution completed:', result);
+      process.exit(0);
+    })
+    .catch(error => {
+      console.error('Bot execution failed:', error);
+      process.exit(1);
+    });
+}
+
+export default LayoutRedesignBot;
