@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, ChefHat, Dumbbell, Clock, Flame, Target, Users, CheckCircle, Plus, ArrowLeft, ArrowRight } from 'lucide-react';
 import { calculateUniversalNutrition, formatNutritionDisplay } from '../utils/nutritionCalculator';
+import { GlassCard, GlassButton } from './glass/GlassCard'
 
 const WeeklyPlan = ({ userProfile, onClose }) => {
   const [currentWeek, setCurrentWeek] = useState(0);
@@ -214,161 +215,171 @@ const WeeklyPlan = ({ userProfile, onClose }) => {
       </div>
 
       {/* Help Text and Actions */}
-      <div className="bg-black/20 backdrop-blur-xl p-4 rounded-xl border border-white/10 mb-8 flex items-center justify-between">
+      <GlassCard intensity="light" className="p-4 mb-8 flex items-center justify-between">
         <div className="text-sm text-gray-300">
-          <span className="text-green-400">★</span> Selected meals from Meals page • 
-          <span className="text-blue-400 ml-2">★</span> Selected workouts from Workouts page
+          <span className="text-green-400 font-semibold">🍽️</span> Selected meals from Meals page • 
+          <span className="text-blue-400 font-semibold ml-2">💪</span> Selected workouts from Workouts page
         </div>
-        <button 
+        <GlassButton 
           onClick={() => {
             localStorage.removeItem('weeklyMealPlan');
             localStorage.removeItem('weeklyWorkoutPlan');
-            // Force re-render by updating state
             setCompletedItems(new Set());
           }}
-          className="px-3 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors text-sm font-medium"
+          variant="danger"
+          size="sm"
         >
           Clear Selections
-        </button>
-      </div>
+        </GlassButton>
+      </GlassCard>
 
       {/* Weekly Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-        <div className="bg-black/40 backdrop-blur-xl p-4 rounded-xl border border-white/20">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+        <GlassCard intensity="strong" className="p-6 glass-orange">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm">Daily Calories</p>
-              <p className="text-xl font-bold text-white">{totalCaloriesPerDay}</p>
+              <p className="text-gray-300 text-sm font-medium">Daily Calories</p>
+              <p className="text-2xl font-bold text-white">{totalCaloriesPerDay}</p>
             </div>
             <Flame className="w-8 h-8 text-orange-400" />
           </div>
-        </div>
+        </GlassCard>
         
-        <div className="bg-black/40 backdrop-blur-xl p-4 rounded-xl border border-white/20">
+        <GlassCard intensity="strong" className="p-6 glass-red">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm">Daily Protein</p>
-              <p className="text-xl font-bold text-white">{totalProteinPerDay}g</p>
+              <p className="text-gray-300 text-sm font-medium">Daily Protein</p>
+              <p className="text-2xl font-bold text-white">{totalProteinPerDay}g</p>
             </div>
             <Target className="w-8 h-8 text-red-400" />
           </div>
-        </div>
+        </GlassCard>
         
-        <div className="bg-black/40 backdrop-blur-xl p-4 rounded-xl border border-white/20">
+        <GlassCard intensity="strong" className="p-6 glass-blue">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm">Weekly Workouts</p>
-              <p className="text-xl font-bold text-white">7</p>
+              <p className="text-gray-300 text-sm font-medium">Weekly Workouts</p>
+              <p className="text-2xl font-bold text-white">7</p>
             </div>
             <Dumbbell className="w-8 h-8 text-blue-400" />
           </div>
-        </div>
+        </GlassCard>
         
-        <div className="bg-black/40 backdrop-blur-xl p-4 rounded-xl border border-white/20">
+        <GlassCard intensity="strong" className="p-6 glass-green">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm">Meal Prep</p>
-              <p className="text-xl font-bold text-white">28</p>
+              <p className="text-gray-300 text-sm font-medium">Meal Prep</p>
+              <p className="text-2xl font-bold text-white">28</p>
             </div>
             <ChefHat className="w-8 h-8 text-green-400" />
           </div>
-        </div>
+        </GlassCard>
         
-        <div className="bg-black/40 backdrop-blur-xl p-4 rounded-xl border border-white/20">
+        <GlassCard intensity="strong" className="p-6 glass-purple">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm">Completed</p>
-              <p className="text-xl font-bold text-white">{completedItems.size}</p>
+              <p className="text-gray-300 text-sm font-medium">Completed</p>
+              <p className="text-2xl font-bold text-white">{completedItems.size}</p>
             </div>
             <CheckCircle className="w-8 h-8 text-purple-400" />
           </div>
-        </div>
+        </GlassCard>
       </div>
 
       {/* Weekly Schedule */}
-      <div className="grid grid-cols-1 lg:grid-cols-7 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
         {weeklyMeals.map((dayData, dayIndex) => {
           const workoutData = weeklyWorkouts[dayIndex];
           const date = weekDates[dayIndex];
           const isToday = date.toDateString() === new Date().toDateString();
           
           return (
-            <div
+            <GlassCard
               key={dayData.day}
-              className={`bg-black/40 backdrop-blur-xl rounded-2xl border shadow-2xl p-4 ${
-                isToday ? 'border-orange-500/50 bg-orange-500/5' : 'border-white/20'
+              intensity="strong"
+              className={`p-5 ${
+                isToday ? 'glass-orange border-orange-400/30' : ''
               }`}
             >
               {/* Day Header */}
-              <div className="text-center mb-4">
-                <h3 className={`font-semibold ${isToday ? 'text-orange-400' : 'text-white'}`}>
+              <div className="text-center mb-5">
+                <h3 className={`font-bold text-lg ${isToday ? 'text-orange-400' : 'text-white'}`}>
                   {dayData.day}
                 </h3>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-300 font-medium">
                   {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </p>
                 {isToday && (
-                  <div className="w-2 h-2 bg-orange-400 rounded-full mx-auto mt-1"></div>
+                  <div className="w-3 h-3 bg-orange-400 rounded-full mx-auto mt-2 animate-pulse shadow-lg"></div>
                 )}
               </div>
 
               {/* Workout */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-medium text-gray-300 flex items-center">
-                    <Dumbbell className="w-3 h-3 mr-1" />
-                    Workout
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-bold text-blue-300 flex items-center">
+                    <Dumbbell className="w-4 h-4 mr-2 text-blue-400" />
+                    WORKOUT
                   </h4>
                   <button
                     onClick={() => toggleComplete(`workout-${dayIndex}`)}
-                    className="p-1 hover:bg-white/10 rounded transition-colors"
+                    className="p-1 hover:bg-white/10 rounded-full transition-all duration-200 hover:scale-110"
                   >
-                    <CheckCircle className={`w-4 h-4 ${
+                    <CheckCircle className={`w-5 h-5 ${
                       completedItems.has(`workout-${dayIndex}`) 
                         ? 'text-green-400 fill-current' 
                         : 'text-gray-400'
                     }`} />
                   </button>
                 </div>
-                <div className={`rounded-lg p-3 mb-2 ${workoutData.workout.isSelected ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-white/5'}`}>
-                  <div className="flex items-center">
-                    <p className="text-white text-sm font-medium">{workoutData.workout.name}</p>
-                    {workoutData.workout.isSelected && <span className="ml-1 text-xs text-blue-400">★</span>}
+                <div className={`rounded-xl p-4 border-2 transition-all duration-200 ${
+                  workoutData.workout.isSelected 
+                    ? 'bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-blue-400/40 shadow-lg shadow-blue-500/20' 
+                    : 'bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <p className="text-white text-sm font-bold">{workoutData.workout.name}</p>
+                    {workoutData.workout.isSelected && <span className="text-blue-300 text-lg">💪</span>}
                   </div>
-                  <div className="flex justify-between text-xs text-gray-400 mt-1">
-                    <span>{workoutData.workout.time}</span>
-                    <span>{workoutData.workout.duration}</span>
+                  <div className="flex justify-between text-xs text-blue-200 mt-2 font-medium">
+                    <span>⏰ {workoutData.workout.time}</span>
+                    <span>⚡ {workoutData.workout.duration}</span>
                   </div>
                 </div>
               </div>
 
               {/* Meals */}
               <div>
-                <h4 className="text-sm font-medium text-gray-300 flex items-center mb-2">
-                  <ChefHat className="w-3 h-3 mr-1" />
-                  Meals ({totalCaloriesPerDay} cal • {totalProteinPerDay}g protein)
+                <h4 className="text-sm font-bold text-green-300 flex items-center mb-3">
+                  <ChefHat className="w-4 h-4 mr-2 text-green-400" />
+                  MEALS
                 </h4>
-                <div className="space-y-2">
+                <p className="text-xs text-green-200 mb-3 font-medium">🎯 {totalCaloriesPerDay} cal • {totalProteinPerDay}g protein</p>
+                <div className="space-y-3">
                   {dayData.meals.map((meal, mealIndex) => {
                     const mealId = `meal-${dayIndex}-${mealIndex}`;
                     return (
-                      <div key={mealIndex} className={`rounded-lg p-2 ${meal.isSelected ? 'bg-green-500/10 border border-green-500/20' : 'bg-white/5'}`}>
+                      <div key={mealIndex} className={`rounded-xl p-3 border-2 transition-all duration-200 ${
+                        meal.isSelected 
+                          ? 'bg-gradient-to-br from-green-500/20 to-green-600/10 border-green-400/40 shadow-lg shadow-green-500/20' 
+                          : 'bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20'
+                      }`}>
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="flex items-center">
-                              <p className="text-white text-xs font-medium">{meal.name}</p>
-                              {meal.isSelected && <span className="ml-1 text-xs text-green-400">★</span>}
+                              <p className="text-white text-xs font-bold">{meal.name}</p>
+                              {meal.isSelected && <span className="ml-2 text-green-300">🍽️</span>}
                             </div>
-                            <div className="flex justify-between text-xs text-gray-400">
-                              <span className="capitalize">{meal.type}</span>
+                            <div className="flex justify-between text-xs text-green-200 mt-1 font-medium">
+                              <span className="capitalize font-semibold">{meal.type}</span>
                               <span>{meal.calories} cal • {meal.protein}g protein</span>
                             </div>
                           </div>
                           <button
                             onClick={() => toggleComplete(mealId)}
-                            className="ml-2 p-1 hover:bg-white/10 rounded transition-colors"
+                            className="ml-2 p-1 hover:bg-white/10 rounded-full transition-all duration-200 hover:scale-110"
                           >
-                            <CheckCircle className={`w-3 h-3 ${
+                            <CheckCircle className={`w-4 h-4 ${
                               completedItems.has(mealId) 
                                 ? 'text-green-400 fill-current' 
                                 : 'text-gray-400'
@@ -380,40 +391,44 @@ const WeeklyPlan = ({ userProfile, onClose }) => {
                   })}
                 </div>
               </div>
-            </div>
+            </GlassCard>
           );
         })}
       </div>
 
       {/* Weekly Summary */}
-      <div className="mt-8 bg-black/40 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl p-6">
-        <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-          <Target className="w-5 h-5 mr-2" />
+      <GlassCard intensity="strong" className="mt-8 p-8 glass-gradient">
+        <h3 className="text-2xl font-bold text-white mb-6 flex items-center">
+          <Target className="w-6 h-6 mr-3 text-orange-400" />
           Weekly Goals & Tips
         </h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-semibold text-orange-400 mb-2">This Week's Focus</h4>
-            <ul className="space-y-1 text-sm text-gray-300">
-              <li>• Stay consistent with your meal timing</li>
-              <li>• Drink 8 glasses of water daily</li>
-              <li>• Complete all scheduled workouts</li>
-              <li>• Get 7-9 hours of sleep each night</li>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <GlassCard intensity="light" className="p-6 glass-orange">
+            <h4 className="font-bold text-orange-300 mb-4 flex items-center text-lg">
+              🎯 This Week's Focus
+            </h4>
+            <ul className="space-y-2 text-sm text-gray-200">
+              <li className="flex items-center"><span className="mr-3 text-orange-400">•</span>Stay consistent with your meal timing</li>
+              <li className="flex items-center"><span className="mr-3 text-orange-400">•</span>Drink 8 glasses of water daily</li>
+              <li className="flex items-center"><span className="mr-3 text-orange-400">•</span>Complete all scheduled workouts</li>
+              <li className="flex items-center"><span className="mr-3 text-orange-400">•</span>Get 7-9 hours of sleep each night</li>
             </ul>
-          </div>
+          </GlassCard>
           
-          <div>
-            <h4 className="font-semibold text-green-400 mb-2">Success Tips</h4>
-            <ul className="space-y-1 text-sm text-gray-300">
-              <li>• Prep meals on Sunday for the week</li>
-              <li>• Set workout reminders on your phone</li>
-              <li>• Track your progress daily</li>
-              <li>• Celebrate small wins along the way</li>
+          <GlassCard intensity="light" className="p-6 glass-green">
+            <h4 className="font-bold text-green-300 mb-4 flex items-center text-lg">
+              💡 Success Tips
+            </h4>
+            <ul className="space-y-2 text-sm text-gray-200">
+              <li className="flex items-center"><span className="mr-3 text-green-400">•</span>Prep meals on Sunday for the week</li>
+              <li className="flex items-center"><span className="mr-3 text-green-400">•</span>Set workout reminders on your phone</li>
+              <li className="flex items-center"><span className="mr-3 text-green-400">•</span>Track your progress daily</li>
+              <li className="flex items-center"><span className="mr-3 text-green-400">•</span>Celebrate small wins along the way</li>
             </ul>
-          </div>
+          </GlassCard>
         </div>
-      </div>
+      </GlassCard>
     </div>
   );
 };

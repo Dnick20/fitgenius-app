@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Users, MapPin, TrendingDown, DollarSign, Check, ChevronLeft, ChevronRight, Settings, Home } from 'lucide-react';
+import { ShoppingCart, Users, MapPin, TrendingDown, DollarSign, Check, ChevronLeft, ChevronRight, Settings, Home, ChefHat, Clock, Utensils } from 'lucide-react';
 import GroceryIntelligenceBot from '../bots/GroceryIntelligenceBot';
+import { GlassCard, GlassButton } from '../components/glass/GlassCard';
 
 const GroceryList = ({ userProfile }) => {
   const [peopleCount, setPeopleCount] = useState(1); // Default to 1
@@ -499,6 +500,19 @@ const GroceryList = ({ userProfile }) => {
 
   const groupedGroceries = groupGroceriesByCategory(groceryList);
   const categoryOrder = ['protein', 'dairy', 'vegetables', 'fruits', 'grains', 'nuts', 'oils', 'spices', 'condiments'];
+  
+  // Get current week's meal plan for display
+  const getCurrentWeekMealPlan = () => {
+    const currentPlan = weeklyMealPlans[currentWeek] || weeklyMealPlans[0];
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    
+    return days.map(day => ({
+      day,
+      meals: currentPlan[day] || {}
+    }));
+  };
+  
+  const currentWeekMeals = getCurrentWeekMealPlan();
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -515,91 +529,101 @@ const GroceryList = ({ userProfile }) => {
         </div>
 
         {/* Week Selector */}
-        <div className="bg-indigo-600 rounded-xl p-4 mb-6 flex items-center justify-between">
-          <button 
-            onClick={() => setCurrentWeek(currentWeek - 1)}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <ChevronLeft className="w-6 h-6 text-white" />
-          </button>
-          
-          <div className="text-center">
-            <div className="text-xl font-bold text-white">
-              {formatWeekDisplay(currentWeekDates)}
+        <GlassCard intensity="strong" className="p-6 mb-6 glass-blue">
+          <div className="flex items-center justify-between">
+            <GlassButton 
+              onClick={() => setCurrentWeek(currentWeek - 1)}
+              variant="ghost"
+              size="sm"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </GlassButton>
+            
+            <div className="text-center">
+              <div className="text-xl font-bold text-white">
+                {formatWeekDisplay(currentWeekDates)}
+              </div>
+              <div className="text-blue-200 text-sm font-medium">
+                {currentWeek === 0 ? 'This Week' : 
+                 currentWeek === 1 ? 'Next Week' : 
+                 currentWeek === -1 ? 'Last Week' : 
+                 `Week ${currentWeek > 0 ? '+' : ''}${currentWeek}`}
+              </div>
             </div>
-            <div className="text-indigo-200 text-sm">
-              {currentWeek === 0 ? 'This Week' : 
-               currentWeek === 1 ? 'Next Week' : 
-               currentWeek === -1 ? 'Last Week' : 
-               `Week ${currentWeek > 0 ? '+' : ''}${currentWeek}`}
-            </div>
+            
+            <GlassButton 
+              onClick={() => setCurrentWeek(currentWeek + 1)}
+              variant="ghost"
+              size="sm"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </GlassButton>
           </div>
-          
-          <button 
-            onClick={() => setCurrentWeek(currentWeek + 1)}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <ChevronRight className="w-6 h-6 text-white" />
-          </button>
-        </div>
+        </GlassCard>
 
         {/* Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* People Count */}
-          <div className="bg-white/5 backdrop-blur-xl p-4 rounded-xl border border-white/10">
-            <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center">
+          <GlassCard intensity="medium" className="p-5 glass-purple">
+            <label className="block text-sm font-bold text-purple-300 mb-3 flex items-center">
               <Users className="w-4 h-4 mr-2" />
               People Count
             </label>
             <div className="flex items-center">
-              <button 
+              <GlassButton 
                 onClick={() => setPeopleCount(Math.max(1, peopleCount - 1))}
-                className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-l-lg transition-colors"
+                variant="ghost"
+                size="sm"
+                className="rounded-r-none"
               >
                 -
-              </button>
-              <span className="bg-white/10 text-white px-4 py-2 min-w-[60px] text-center">
+              </GlassButton>
+              <div className="bg-white/20 text-white px-6 py-2 min-w-[60px] text-center font-bold border-y border-white/30">
                 {peopleCount}
-              </span>
-              <button 
+              </div>
+              <GlassButton 
                 onClick={() => setPeopleCount(peopleCount + 1)}
-                className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-r-lg transition-colors"
+                variant="ghost"
+                size="sm"
+                className="rounded-l-none"
               >
                 +
-              </button>
+              </GlassButton>
             </div>
-          </div>
+          </GlassCard>
 
           {/* Zipcode */}
-          <div className="bg-white/5 backdrop-blur-xl p-4 rounded-xl border border-white/10">
-            <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center">
+          <GlassCard intensity="medium" className="p-5 glass-green">
+            <label className="block text-sm font-bold text-green-300 mb-3 flex items-center">
               <MapPin className="w-4 h-4 mr-2" />
               Zipcode
             </label>
-            <button
+            <GlassButton
               onClick={() => {
                 setTempZipcode(userZipcode);
                 setShowZipcodeModal(true);
               }}
-              className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-left hover:bg-white/20 transition-colors flex items-center justify-between"
+              variant="ghost"
+              className="w-full justify-between"
             >
               <span>{userZipcode || 'Set Location'}</span>
               <Settings className="w-4 h-4" />
-            </button>
-          </div>
+            </GlassButton>
+          </GlassCard>
 
           {/* Store Selection */}
-          <div className="bg-white/5 backdrop-blur-xl p-4 rounded-xl border border-white/10">
-            <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center">
+          <GlassCard intensity="medium" className="p-5 glass-orange">
+            <label className="block text-sm font-bold text-orange-300 mb-3 flex items-center">
               <TrendingDown className="w-4 h-4 mr-2" />
               Store Selection
             </label>
-            <button
+            <GlassButton
               onClick={() => {
                 setTempStore(selectedStore);
                 setShowStoreModal(true);
               }}
-              className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-left hover:bg-white/20 transition-colors flex items-center justify-between"
+              variant="ghost"
+              className="w-full justify-between"
             >
               <span>
                 {selectedStore === 'cheapest' ? 'Cheapest' :
@@ -609,41 +633,124 @@ const GroceryList = ({ userProfile }) => {
                  'Choose Store'}
               </span>
               <Settings className="w-4 h-4" />
-            </button>
-          </div>
+            </GlassButton>
+          </GlassCard>
         </div>
       </div>
 
-      {/* Grocery List by Category */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-white flex items-center">
-            <ShoppingCart className="w-6 h-6 mr-3 text-orange-400" />
-            Weekly Grocery List ({groceryList.length} items)
-          </h2>
-          
-          {checkedItems.size > 0 && (
-            <button
-              onClick={() => setShowShoppingList(!showShoppingList)}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center"
-            >
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              {showShoppingList ? 'Show Full List' : `Shopping List (${checkedItems.size})`}
-            </button>
-          )}
+      {/* Main Content Grid: Meals + Grocery List */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Weekly Meal Plan - Left Side */}
+        <div className="lg:col-span-2">
+          <GlassCard intensity="strong" className="p-6 mb-8">
+            <h2 className="text-2xl font-bold text-white flex items-center mb-6">
+              <ChefHat className="w-6 h-6 mr-3 text-green-400" />
+              Weekly Meal Plan
+              <span className="ml-3 text-sm bg-green-400/20 text-green-300 px-2 py-1 rounded-full font-normal">
+                {peopleCount} {peopleCount === 1 ? 'person' : 'people'}
+              </span>
+            </h2>
+            
+            <div className="space-y-6">
+              {currentWeekMeals.map((dayData, dayIndex) => {
+                const isToday = new Date().getDay() === (dayIndex + 1) % 7;
+                
+                return (
+                  <GlassCard 
+                    key={dayData.day} 
+                    intensity="light" 
+                    className={`p-5 ${
+                      isToday ? 'glass-orange border-orange-400/30' : 'glass-gradient'
+                    }`}
+                  >
+                    <div className="flex items-center mb-4">
+                      <h3 className={`text-lg font-bold ${
+                        isToday ? 'text-orange-400' : 'text-white'
+                      }`}>
+                        {dayData.day}
+                      </h3>
+                      {isToday && (
+                        <span className="ml-3 bg-orange-400 text-black px-2 py-1 rounded-full text-xs font-bold animate-pulse">
+                          TODAY
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {['breakfast', 'lunch', 'dinner'].map(mealType => {
+                        const meal = dayData.meals[mealType];
+                        if (!meal) return null;
+                        
+                        return (
+                          <div key={mealType} className="bg-white/10 rounded-xl p-4 border border-white/20">
+                            <div className="flex items-center mb-2">
+                              <Utensils className="w-4 h-4 mr-2 text-gray-400" />
+                              <span className="text-sm font-semibold text-gray-300 capitalize">
+                                {mealType}
+                              </span>
+                            </div>
+                            <h4 className="font-bold text-white text-sm mb-3">
+                              {meal.name}
+                            </h4>
+                            <div className="space-y-1">
+                              {meal.ingredients.slice(0, 3).map((ingredient, idx) => (
+                                <div key={idx} className="text-xs text-gray-400 flex items-center">
+                                  <span className="w-1 h-1 bg-gray-400 rounded-full mr-2"></span>
+                                  {ingredient}
+                                </div>
+                              ))}
+                              {meal.ingredients.length > 3 && (
+                                <div className="text-xs text-gray-500 italic">
+                                  +{meal.ingredients.length - 3} more
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </GlassCard>
+                );
+              })}
+            </div>
+          </GlassCard>
         </div>
+        
+        {/* Grocery List - Right Side */}
+        <div className="lg:col-span-1">
+          <GlassCard intensity="strong" className="p-6 sticky top-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-white flex items-center">
+                <ShoppingCart className="w-5 h-5 mr-2 text-orange-400" />
+                Grocery List
+                <span className="ml-2 text-sm bg-orange-400/20 text-orange-300 px-2 py-1 rounded-full font-normal">
+                  {groceryList.length} items
+                </span>
+              </h2>
+              
+              {checkedItems.size > 0 && (
+                <GlassButton
+                  onClick={() => setShowShoppingList(!showShoppingList)}
+                  variant="success"
+                  size="sm"
+                >
+                  {showShoppingList ? 'Full List' : `Cart (${checkedItems.size})`}
+                </GlassButton>
+              )}
+            </div>
 
-        {loadingPrices && (
-          <div className="text-center py-4">
-            <div className="text-gray-400">Loading prices...</div>
-          </div>
-        )}
+            {loadingPrices && (
+              <div className="text-center py-4">
+                <div className="text-gray-400 text-sm">Loading prices...</div>
+              </div>
+            )}
 
-        {/* Shopping List View */}
-        {showShoppingList && (
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold text-green-400 mb-4">
-              🛒 Shopping List - Organized by Store Layout
+            {/* Shopping List View */}
+            {showShoppingList && (
+              <div className="mb-6">
+            <h3 className="text-lg font-bold text-green-400 mb-4 flex items-center">
+              🛒 <span className="ml-2">Shopping Cart</span>
             </h3>
             
             {(() => {
@@ -659,17 +766,14 @@ const GroceryList = ({ userProfile }) => {
               }
               
               return (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {Object.entries(organizedShopping).map(([aisle, items]) => (
-                    <div key={aisle} className="bg-white/5 rounded-lg p-4 border border-white/10">
-                      <h4 className="text-lg font-medium text-orange-400 mb-3 flex items-center">
-                        📍 {aisle}
-                        <span className="ml-2 bg-orange-400/20 text-orange-300 px-2 py-1 rounded-full text-xs">
-                          {items.length} item{items.length > 1 ? 's' : ''}
-                        </span>
+                    <div key={aisle} className="bg-gradient-to-r from-green-500/10 to-green-600/5 rounded-lg p-3 border border-green-500/20">
+                      <h4 className="text-sm font-bold text-green-300 mb-2 flex items-center">
+                        📍 <span className="ml-1">{aisle.replace(' (Aisle', ' (A').replace(')', ')')}</span>
                       </h4>
                       
-                      <div className="space-y-2">
+                      <div className="space-y-1">
                         {items.map((item, index) => {
                           let walmartPrice, krogerPrice, wholefoodsPrice;
                           
@@ -680,41 +784,29 @@ const GroceryList = ({ userProfile }) => {
                           }
                           
                           return (
-                            <div key={index} className="bg-white/5 rounded p-3 border-l-4 border-green-500">
+                            <div key={index} className="bg-white/10 rounded p-2 border-l-2 border-green-400">
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <div className="font-medium text-white">
-                                    ✅ {item.name} - {item.amount.toFixed(2)} {item.unit}
+                                  <div className="font-medium text-white text-sm">
+                                    ✅ {item.name} - {item.amount.toFixed(1)} {item.unit}
                                   </div>
                                   
-                                  {/* Price Comparison for Shopping List */}
+                                  {/* Price for Shopping List */}
                                   {pricingData && (
-                                    <div className="flex items-center space-x-4 mt-1 text-sm">
-                                      {walmartPrice && (
-                                        <span className="text-blue-400">
-                                          Walmart: ${walmartPrice.price.toFixed(2)}
-                                        </span>
-                                      )}
-                                      {krogerPrice && (
-                                        <span className="text-orange-400">
-                                          Kroger: ${krogerPrice.price.toFixed(2)}
-                                        </span>
-                                      )}
-                                      {wholefoodsPrice && (
-                                        <span className="text-green-400">
-                                          Whole Foods: ${wholefoodsPrice.price.toFixed(2)}
-                                        </span>
-                                      )}
+                                    <div className="text-xs text-gray-400 mt-1">
+                                      {walmartPrice && <span>W: ${walmartPrice.price.toFixed(2)} </span>}
+                                      {krogerPrice && <span>K: ${krogerPrice.price.toFixed(2)} </span>}
+                                      {wholefoodsPrice && <span>WF: ${wholefoodsPrice.price.toFixed(2)}</span>}
                                     </div>
                                   )}
                                 </div>
                                 
                                 <button
                                   onClick={() => toggleChecked(item.name)}
-                                  className="text-green-400 hover:text-green-300 transition-colors"
-                                  title="Mark as completed"
+                                  className="text-green-400 hover:text-green-300 transition-colors p-1"
+                                  title="Remove from cart"
                                 >
-                                  <Check className="w-5 h-5" />
+                                  <Check className="w-3 h-3" />
                                 </button>
                               </div>
                             </div>
@@ -726,120 +818,119 @@ const GroceryList = ({ userProfile }) => {
                 </div>
               );
             })()}
-          </div>
-        )}
+              </div>
+            )}
 
-        {!showShoppingList && categoryOrder.map(category => {
-          const items = groupedGroceries[category];
-          if (!items || items.length === 0) return null;
-
-          return (
-            <div key={category} className="mb-8">
-              <h3 className="text-xl font-semibold text-orange-400 mb-4 capitalize">
-                {category} ({items.length} items)
-              </h3>
-              
-              <div className="space-y-3">
-                {items.map((item, index) => {
-                  const isChecked = checkedItems.has(item.name);
-                  let walmartPrice, krogerPrice, wholefoodsPrice;
-                  
-                  if (pricingData) {
-                    walmartPrice = pricingData.walmart?.itemPrices?.find(p => p.name === item.name);
-                    krogerPrice = pricingData.kroger?.itemPrices?.find(p => p.name === item.name);
-                    wholefoodsPrice = pricingData.wholefoods?.itemPrices?.find(p => p.name === item.name);
-                  }
+            {!showShoppingList && (
+              <div className="space-y-6 max-h-96 overflow-y-auto pr-2">
+                {categoryOrder.map(category => {
+                  const items = groupedGroceries[category];
+                  if (!items || items.length === 0) return null;
 
                   return (
-                    <div key={`${category}-${index}`} className={`bg-white/5 rounded-lg p-4 border border-white/10 transition-all ${
-                      isChecked ? 'opacity-60' : 'hover:bg-white/10'
-                    }`}>
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-3 flex-1">
-                          <button
-                            onClick={() => toggleChecked(item.name)}
-                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors mt-1 ${
-                              isChecked
-                                ? 'bg-green-500 border-green-500'
-                                : 'border-white/30 hover:border-green-400'
-                            }`}
-                          >
-                            {isChecked && <Check className="w-4 h-4 text-white" />}
-                          </button>
+                    <div key={category}>
+                      <h3 className="text-sm font-bold text-orange-400 mb-3 capitalize flex items-center">
+                        <span className="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
+                        {category} ({items.length})
+                      </h3>
+                      
+                      <div className="space-y-2">
+                        {items.map((item, index) => {
+                          const isChecked = checkedItems.has(item.name);
+                          let walmartPrice, krogerPrice, wholefoodsPrice;
                           
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3">
-                              <div className={`font-medium text-white ${isChecked ? 'line-through' : ''}`}>
-                                {item.name} - {item.amount.toFixed(2)} {item.unit}
-                              </div>
-                              {item.inInventory && (
-                                <div className="flex items-center bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs">
-                                  <Home className="w-3 h-3 mr-1" />
-                                  Have {item.inventoryAmount.toFixed(1)}
+                          if (pricingData) {
+                            walmartPrice = pricingData.walmart?.itemPrices?.find(p => p.name === item.name);
+                            krogerPrice = pricingData.kroger?.itemPrices?.find(p => p.name === item.name);
+                            wholefoodsPrice = pricingData.wholefoods?.itemPrices?.find(p => p.name === item.name);
+                          }
+
+                          return (
+                            <div key={`${category}-${index}`} className={`bg-white/10 rounded-lg p-3 border border-white/20 transition-all ${
+                              isChecked ? 'opacity-60 bg-green-500/10' : 'hover:bg-white/20'
+                            }`}>
+                              <div className="flex items-center space-x-3">
+                                <button
+                                  onClick={() => toggleChecked(item.name)}
+                                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                    isChecked
+                                      ? 'bg-green-500 border-green-500'
+                                      : 'border-white/30 hover:border-green-400'
+                                  }`}
+                                >
+                                  {isChecked && <Check className="w-3 h-3 text-white" />}
+                                </button>
+                                
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between">
+                                    <div className={`font-medium text-white text-sm ${
+                                      isChecked ? 'line-through' : ''
+                                    }`}>
+                                      {item.name}
+                                    </div>
+                                    {item.inInventory && (
+                                      <div className="flex items-center bg-green-500/20 text-green-400 px-1 py-0.5 rounded text-xs">
+                                        <Home className="w-2 h-2 mr-1" />
+                                        {item.inventoryAmount.toFixed(1)}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-gray-400 mt-1">
+                                    {item.amount.toFixed(1)} {item.unit}
+                                  </div>
+                                  
+                                  {/* Compact Price Display */}
+                                  {pricingData && (
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      {walmartPrice && <span className="text-blue-400 mr-2">W: ${walmartPrice.price.toFixed(2)}</span>}
+                                      {krogerPrice && <span className="text-orange-400 mr-2">K: ${krogerPrice.price.toFixed(2)}</span>}
+                                      {wholefoodsPrice && <span className="text-green-400">WF: ${wholefoodsPrice.price.toFixed(2)}</span>}
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </div>
-                            
-                            {/* Price Comparison */}
-                            {pricingData && (
-                              <div className="flex items-center space-x-6 mt-2 text-sm">
-                                {walmartPrice && (
-                                  <span className="text-blue-400">
-                                    Walmart: <span className="font-medium">${walmartPrice.price.toFixed(2)}</span>
-                                  </span>
-                                )}
-                                {krogerPrice && (
-                                  <span className="text-orange-400">
-                                    Kroger: <span className="font-medium">${krogerPrice.price.toFixed(2)}</span>
-                                  </span>
-                                )}
-                                {wholefoodsPrice && (
-                                  <span className="text-green-400">
-                                    Whole Foods: <span className="font-medium">${wholefoodsPrice.price.toFixed(2)}</span>
-                                  </span>
-                                )}
                               </div>
-                            )}
-                          </div>
-                        </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   );
                 })}
               </div>
-            </div>
-          );
-        })}
+            )}
+          </GlassCard>
+        </div>
       </div>
 
       {/* Store Totals */}
       {pricingData && (
-        <div className="mt-8 pt-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+        <GlassCard intensity="strong" className="mt-8 p-6">
+          <h3 className="text-xl font-bold text-white mb-6 flex items-center">
             <DollarSign className="w-5 h-5 mr-2 text-green-400" />
-            Store Totals
+            Store Price Comparison
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {Object.entries(pricingData).map(([store, data]) => (
-              <div
+              <GlassCard
                 key={store}
-                className={`p-4 rounded-lg border ${
-                  store === 'walmart' ? 'bg-blue-500/10 border-blue-400/30' :
-                  store === 'kroger' ? 'bg-orange-500/10 border-orange-400/30' :
-                  'bg-green-500/10 border-green-400/30'
+                intensity="medium"
+                className={`p-5 ${
+                  store === 'walmart' ? 'glass-blue' :
+                  store === 'kroger' ? 'glass-orange' :
+                  'glass-green'
                 }`}
               >
-                <div className="text-white font-semibold mb-2">{data.name}</div>
-                <div className="text-2xl font-bold text-white">${data.total.toFixed(2)}</div>
+                <div className="text-white font-bold mb-2 text-lg">{data.name}</div>
+                <div className="text-3xl font-bold text-white">${data.total.toFixed(2)}</div>
                 {data.deliveryFee > 0 && (
-                  <div className="text-xs text-gray-400">
-                    Includes ${data.deliveryFee} delivery
+                  <div className="text-sm text-gray-300 mt-2">
+                    + ${data.deliveryFee} delivery
                   </div>
                 )}
-              </div>
+              </GlassCard>
             ))}
           </div>
-        </div>
+        </GlassCard>
       )}
 
       {/* Zipcode Modal */}

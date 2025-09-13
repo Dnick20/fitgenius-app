@@ -656,7 +656,7 @@ const Workouts = ({ userProfile }) => {
                 Complete Exercise
               </button>
             </div>
-          </div>
+          </GlassCard>
         )}
 
         {/* Calorie Bonus Modal */}
@@ -681,7 +681,7 @@ const Workouts = ({ userProfile }) => {
                 Skip
               </button>
             </div>
-          </GlassCard>
+          </div>
         )}
 
         {/* Workout Complete */}
@@ -863,7 +863,7 @@ const Workouts = ({ userProfile }) => {
                 Start
               </button>
             </div>
-          </div>
+          </GlassCard>
         ))}
       </div>
       

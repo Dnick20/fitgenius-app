@@ -14,6 +14,7 @@ const Meals = ({ userProfile }) => {
   const [selectedMeals, setSelectedMeals] = useState([]);
   const [showWeeklyPlanUpdate, setShowWeeklyPlanUpdate] = useState(false);
   const [expandedMeal, setExpandedMeal] = useState(null);
+  const [mealRepetition, setMealRepetition] = useState(2); // Default 2x weekly
   const [aiMealRequirements, setAiMealRequirements] = useState({
     mealType: 'lunch',
     calories: '',
@@ -62,13 +63,26 @@ const Meals = ({ userProfile }) => {
 
   const addMealsToWeeklyPlan = () => {
     const existingPlan = JSON.parse(localStorage.getItem('weeklyMealPlan') || '[]');
-    const updatedPlan = [...existingPlan, ...selectedMeals.map(meal => ({
-      ...meal,
-      scheduledFor: 'user-selected',
-      addedDate: new Date().toISOString()
-    }))];
     
+    // Create repeated meals based on mealRepetition setting
+    const repeatedMeals = [];
+    selectedMeals.forEach(meal => {
+      for (let i = 0; i < mealRepetition; i++) {
+        repeatedMeals.push({
+          ...meal,
+          id: `${meal.id}_repeat_${i}`, // Unique ID for each repetition
+          originalId: meal.id,
+          repetitionIndex: i + 1,
+          scheduledFor: 'user-selected',
+          addedDate: new Date().toISOString(),
+          repetitionCount: mealRepetition
+        });
+      }
+    });
+    
+    const updatedPlan = [...existingPlan, ...repeatedMeals];
     localStorage.setItem('weeklyMealPlan', JSON.stringify(updatedPlan));
+    
     setShowWeeklyPlanUpdate(true);
     setSelectedMeals([]);
     
@@ -1264,30 +1278,71 @@ const Meals = ({ userProfile }) => {
 
       {/* Selected Meals */}
       {selectedMeals.length > 0 && (
-        <div className="bg-green-500/10 border border-green-400/30 p-4 rounded-xl mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-green-400 font-semibold">Selected Meals ({selectedMeals.length})</h3>
-              <p className="text-gray-300 text-sm">
-                {selectedMeals.map(m => m.name).join(', ')}
-              </p>
+        <GlassCard intensity="strong" className="p-6 mb-8 glass-green">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-green-400 font-bold text-lg flex items-center">
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  Selected Meals ({selectedMeals.length})
+                </h3>
+                <p className="text-gray-300 text-sm mt-1">
+                  {selectedMeals.map(m => m.name).join(', ')}
+                </p>
+              </div>
             </div>
-            <button
-              onClick={addMealsToWeeklyPlan}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold"
-            >
-              Add to Weekly Plan
-            </button>
+            
+            {/* Meal Repetition Control */}
+            <div className="flex items-center space-x-4 bg-white/10 rounded-lg p-4">
+              <div className="flex items-center space-x-3">
+                <span className="text-white font-medium">Repeat each meal:</span>
+                <div className="flex items-center bg-white/20 rounded-lg">
+                  <button
+                    onClick={() => setMealRepetition(Math.max(1, mealRepetition - 1))}
+                    className="px-3 py-2 text-white hover:bg-white/20 rounded-l-lg transition-colors font-bold"
+                  >
+                    -
+                  </button>
+                  <div className="px-4 py-2 text-white font-bold min-w-[60px] text-center">
+                    {mealRepetition}x
+                  </div>
+                  <button
+                    onClick={() => setMealRepetition(Math.min(7, mealRepetition + 1))}
+                    className="px-3 py-2 text-white hover:bg-white/20 rounded-r-lg transition-colors font-bold"
+                  >
+                    +
+                  </button>
+                </div>
+                <span className="text-gray-400 text-sm">per week</span>
+              </div>
+              
+              <GlassButton
+                onClick={addMealsToWeeklyPlan}
+                variant="success"
+                className="ml-auto"
+              >
+                Add {selectedMeals.length * mealRepetition} Meals to Plan
+              </GlassButton>
+            </div>
+            
+            <div className="text-xs text-gray-400 bg-white/5 p-3 rounded-lg">
+              💡 <strong>Tip:</strong> Each selected meal will be repeated {mealRepetition} time{mealRepetition !== 1 ? 's' : ''} throughout the week. 
+              You can adjust this setting to match your meal prep preferences!
+            </div>
           </div>
-        </div>
+        </GlassCard>
       )}
 
       {/* Success notification */}
       {showWeeklyPlanUpdate && (
-        <div className="bg-green-500/10 border border-green-400/30 p-4 rounded-xl mb-6 flex items-center">
-          <CheckCircle className="w-5 h-5 text-green-400 mr-3" />
-          <span className="text-green-400 font-semibold">Meals added to your weekly plan!</span>
-        </div>
+        <GlassCard intensity="medium" className="p-4 mb-6 glass-green animate-pulse">
+          <div className="flex items-center">
+            <CheckCircle className="w-5 h-5 text-green-400 mr-3" />
+            <span className="text-green-400 font-semibold">
+              ✨ Meals added to your weekly plan with {mealRepetition}x repetition!
+            </span>
+          </div>
+        </GlassCard>
       )}
 
       {/* Quick Stats */}
@@ -1302,7 +1357,7 @@ const Meals = ({ userProfile }) => {
               </div>
               <Flame className="w-8 h-8 text-orange-400" />
             </div>
-          </div>
+          </GlassCard>
           
           <GlassCard intensity="normal" className="p-4">
             <div className="flex items-center justify-between">
@@ -1313,7 +1368,7 @@ const Meals = ({ userProfile }) => {
               </div>
               <div className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center text-white font-bold">P</div>
             </div>
-          </div>
+          </GlassCard>
           
           <GlassCard intensity="normal" className="p-4">
             <div className="flex items-center justify-between">
@@ -1323,7 +1378,7 @@ const Meals = ({ userProfile }) => {
               </div>
               <Heart className="w-8 h-8 text-pink-400" />
             </div>
-          </div>
+          </GlassCard>
           
           <GlassCard intensity="normal" className="p-4">
             <div className="flex items-center justify-between">
@@ -1528,7 +1583,7 @@ const Meals = ({ userProfile }) => {
                 View Recipe
               </button>
             </div>
-          </div>
+          </GlassCard>
         </div>
       )}
 

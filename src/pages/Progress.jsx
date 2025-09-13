@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { TrendingUp, Target, Award, Plus, Weight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { TrendingUp, Target, Award, Plus, Weight, Calculator } from 'lucide-react';
 import { GlassCard, GlassButton } from '../components/glass/GlassCard';
+import { useUserData } from '../context/UserDataContext';
 
 const Progress = ({ userProfile }) => {
+  const { currentWeight: contextWeight, updateWeight, addProgressEntry: addToContext } = useUserData() || {};
   const [showAddEntry, setShowAddEntry] = useState(false);
   const [progressEntries, setProgressEntries] = useState(() => {
     const saved = localStorage.getItem('progressEntries');
@@ -17,47 +19,138 @@ const Progress = ({ userProfile }) => {
 
   const [newEntry, setNewEntry] = useState({
     date: new Date().toISOString().split('T')[0],
-    weight: '', bodyFat: '', notes: ''
+    weight: '', 
+    bodyFat: '', 
+    waist: '',
+    neck: '',
+    hip: '',
+    height: userProfile?.heightFeet && userProfile?.heightInches 
+      ? (userProfile.heightFeet * 12 + parseInt(userProfile.heightInches)) 
+      : 68,
+    notes: ''
   });
+
+  // Pre-defined notes options
+  const noteOptions = [
+    'Feeling great!',
+    'Making progress',
+    'Stayed consistent',
+    'Challenging day',
+    'New personal best',
+    'Recovery day',
+    'High energy',
+    'Good nutrition day',
+    'Missed workout',
+    'Back on track',
+    'Feeling stronger',
+    'Need more rest',
+    'Custom...'
+  ];
+
+  // Calculate body fat percentage using Navy Method
+  const calculateBodyFat = () => {
+    const { waist, neck, hip, height } = newEntry;
+    const gender = userProfile?.gender || 'male';
+    
+    if (waist && neck && height) {
+      const waistCm = waist * 2.54;
+      const neckCm = neck * 2.54;
+      const heightCm = height * 2.54;
+      
+      let bodyFat;
+      if (gender === 'male') {
+        bodyFat = 495 / (1.0324 - 0.19077 * Math.log10(waistCm - neckCm) + 0.15456 * Math.log10(heightCm)) - 450;
+      } else {
+        // For female, need hip measurement too
+        if (hip) {
+          const hipCm = hip * 2.54;
+          bodyFat = 495 / (1.29579 - 0.35004 * Math.log10(waistCm + hipCm - neckCm) + 0.22100 * Math.log10(heightCm)) - 450;
+        } else {
+          return 'Hip measurement needed';
+        }
+      }
+      
+      return Math.round(bodyFat * 10) / 10;
+    }
+    return '';
+  };
+
+  // Auto-calculate body fat when measurements change
+  useEffect(() => {
+    const gender = userProfile?.gender || 'male';
+    if (newEntry.waist && newEntry.neck && (gender === 'male' || newEntry.hip)) {
+      const calculated = calculateBodyFat();
+      if (calculated && typeof calculated === 'number') {
+        setNewEntry(prev => ({ ...prev, bodyFat: calculated }));
+      }
+    }
+  }, [newEntry.waist, newEntry.neck, newEntry.hip, userProfile?.gender]);
 
   const addProgressEntry = () => {
     if (newEntry.weight) {
-      const updatedEntries = [newEntry, ...progressEntries];
+      const entryToAdd = {
+        ...newEntry,
+        weight: parseFloat(newEntry.weight),
+        bodyFat: newEntry.bodyFat ? parseFloat(newEntry.bodyFat) : undefined
+      };
+      
+      // Update local progress entries
+      const updatedEntries = [entryToAdd, ...progressEntries];
       setProgressEntries(updatedEntries);
       
-      // Save to localStorage for persistence
-      localStorage.setItem('progressEntries', JSON.stringify(updatedEntries));
+      // Use UserDataContext to update weight and add progress entry
+      if (updateWeight && addToContext) {
+        updateWeight(entryToAdd.weight);
+        addToContext(entryToAdd);
+      } else {
+        // Fallback to localStorage if context not available
+        localStorage.setItem('progressEntries', JSON.stringify(updatedEntries));
+        const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        savedProfile.weightLbs = entryToAdd.weight;
+        savedProfile.currentWeight = entryToAdd.weight;
+        localStorage.setItem('userProfile', JSON.stringify(savedProfile));
+      }
       
-      // Also update the current weight in userProfile
-      const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-      savedProfile.weightLbs = newEntry.weight;
-      savedProfile.currentWeight = newEntry.weight;
-      localStorage.setItem('userProfile', JSON.stringify(savedProfile));
-      
-      setNewEntry({ date: new Date().toISOString().split('T')[0], weight: '', bodyFat: '', notes: '' });
+      // Reset form
+      setNewEntry({ 
+        date: new Date().toISOString().split('T')[0], 
+        weight: '', 
+        bodyFat: '', 
+        waist: '',
+        neck: '',
+        hip: '',
+        height: userProfile?.heightFeet && userProfile?.heightInches 
+          ? (userProfile.heightFeet * 12 + parseInt(userProfile.heightInches)) 
+          : 68,
+        notes: '' 
+      });
       setShowAddEntry(false);
     }
   };
 
   // Use consistent weight data sources with Dashboard
   const getUserCurrentWeight = () => {
-    // First check saved progress entries
-    if (progressEntries.length > 0) {
-      return progressEntries[0].weight; // Most recent progress entry
+    // Use context weight if available
+    if (contextWeight) {
+      return contextWeight;
     }
     
-    // Then check userProfile for weightLbs (from account creation)
+    // Otherwise check saved progress entries
+    if (progressEntries.length > 0) {
+      return progressEntries[0].weight;
+    }
+    
+    // Then check userProfile for weightLbs
     if (userProfile?.weightLbs) {
       return parseFloat(userProfile.weightLbs);
     }
     
-    // Finally check localStorage for saved profile
+    // Finally check localStorage
     const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
     if (savedProfile.weightLbs) {
       return parseFloat(savedProfile.weightLbs);
     }
     
-    // Fallback: convert from kg if available
     return Math.round((userProfile?.weight || savedProfile?.weight || 68) * 2.20462);
   };
 
@@ -140,23 +233,108 @@ const Progress = ({ userProfile }) => {
       {showAddEntry && (
         <GlassCard intensity="strong" className="p-6 mb-8">
           <h3 className="text-xl font-semibold text-white mb-4">Log Your Progress</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Date</label>
-              <input type="date" value={newEntry.date} onChange={(e) => setNewEntry({...newEntry, date: e.target.value})} className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500" />
+              <input 
+                type="date" 
+                value={newEntry.date} 
+                onChange={(e) => setNewEntry({...newEntry, date: e.target.value})} 
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500" 
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Weight (lbs)</label>
-              <input type="number" value={newEntry.weight} onChange={(e) => setNewEntry({...newEntry, weight: parseFloat(e.target.value)})} className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="180" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Body Fat %</label>
-              <input type="number" value={newEntry.bodyFat} onChange={(e) => setNewEntry({...newEntry, bodyFat: parseFloat(e.target.value)})} className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="18" />
+              <input 
+                type="number" 
+                value={newEntry.weight} 
+                onChange={(e) => setNewEntry({...newEntry, weight: e.target.value})} 
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500" 
+                placeholder="180" 
+                step="0.1"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Notes</label>
-              <input type="text" value={newEntry.notes} onChange={(e) => setNewEntry({...newEntry, notes: e.target.value})} className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="How are you feeling?" />
+              <select 
+                value={newEntry.notes} 
+                onChange={(e) => {
+                  if (e.target.value === 'Custom...') {
+                    setNewEntry({...newEntry, notes: ''});
+                  } else {
+                    setNewEntry({...newEntry, notes: e.target.value});
+                  }
+                }} 
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+              >
+                <option value="">Select or enter note...</option>
+                {noteOptions.map(option => (
+                  <option key={option} value={option} className="bg-gray-800">{option}</option>
+                ))}
+              </select>
             </div>
+          </div>
+          
+          {/* Body Fat Calculator Section */}
+          <div className="bg-white/5 rounded-xl p-4 mb-6">
+            <div className="flex items-center mb-3">
+              <Calculator className="w-5 h-5 text-blue-400 mr-2" />
+              <h4 className="text-sm font-medium text-white">Body Fat Calculator (Navy Method)</h4>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1">Waist (inches)</label>
+                <input 
+                  type="number" 
+                  value={newEntry.waist} 
+                  onChange={(e) => setNewEntry({...newEntry, waist: e.target.value})} 
+                  className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" 
+                  placeholder="32"
+                  step="0.5"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1">Neck (inches)</label>
+                <input 
+                  type="number" 
+                  value={newEntry.neck} 
+                  onChange={(e) => setNewEntry({...newEntry, neck: e.target.value})} 
+                  className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" 
+                  placeholder="15"
+                  step="0.5"
+                />
+              </div>
+              {(userProfile?.gender === 'female') && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Hip (inches)</label>
+                  <input 
+                    type="number" 
+                    value={newEntry.hip} 
+                    onChange={(e) => setNewEntry({...newEntry, hip: e.target.value})} 
+                    className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" 
+                    placeholder="36"
+                    step="0.5"
+                  />
+                </div>
+              )}
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1">Height (inches)</label>
+                <input 
+                  type="number" 
+                  value={newEntry.height} 
+                  onChange={(e) => setNewEntry({...newEntry, height: e.target.value})} 
+                  className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-400" 
+                  placeholder="68"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1">Calculated Body Fat %</label>
+                <div className="px-2 py-1 bg-blue-500/20 border border-blue-400/40 rounded text-blue-300 text-sm font-medium">
+                  {typeof newEntry.bodyFat === 'number' ? newEntry.bodyFat + '%' : newEntry.bodyFat || '--'}
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 mt-2">Enter waist, neck{userProfile?.gender === 'female' ? ', and hip' : ''} measurements for automatic body fat calculation</p>
           </div>
           <div className="flex gap-3 mt-4">
             <button onClick={addProgressEntry} className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity">Save Entry</button>
@@ -173,6 +351,7 @@ const Progress = ({ userProfile }) => {
           </div>
           <div className="text-2xl font-bold text-white">{currentWeight} lbs</div>
           <div className="text-xs text-gray-400">Goal: {goalWeight} lbs</div>
+          <div className="text-xs text-green-400 mt-1">Context: {contextWeight || 'Loading...'} lbs</div>
         </GlassCard>
         
         <GlassCard intensity="strong" className="p-6 glass-green">
