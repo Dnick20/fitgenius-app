@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { isAuthenticated, getAuthUser, signOut } from './services/auth';
+import SupabaseService from './services/SupabaseService';
 import LandingPage from './components/LandingPage';
 import SignIn from './components/auth/SignIn';
 import SignUp from './components/auth/SignUp';
@@ -23,19 +23,41 @@ const AppWithAuth = () => {
   const [currentView, setCurrentView] = useState('dashboard');
 
   useEffect(() => {
-    // Check if user is already authenticated
-    if (isAuthenticated()) {
-      const user = getAuthUser();
-      // Also check for updated profile in localStorage
-      const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-      if (Object.keys(savedProfile).length > 0 && user) {
-        user.profile = { ...user.profile, ...savedProfile };
+    const checkAuthentication = async () => {
+      try {
+        const isAuth = await SupabaseService.isAuthenticated();
+        if (isAuth) {
+          const user = await SupabaseService.getCurrentUser();
+          setCurrentUser(user);
+          setAuthState('authenticated');
+        } else {
+          setAuthState('landing');
+        }
+      } catch (error) {
+        console.error('Authentication check error:', error);
+        setAuthState('landing');
       }
-      setCurrentUser(user);
-      setAuthState('authenticated');
-    } else {
-      setAuthState('landing');
-    }
+    };
+
+    checkAuthentication();
+
+    // Set up auth state change listener
+    const { data: authListener } = SupabaseService.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          const user = await SupabaseService.getCurrentUser();
+          setCurrentUser(user);
+          setAuthState('authenticated');
+        } else if (event === 'SIGNED_OUT') {
+          setCurrentUser(null);
+          setAuthState('landing');
+        }
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   const handleAuthSuccess = (user) => {
@@ -44,11 +66,15 @@ const AppWithAuth = () => {
     setCurrentView('dashboard');
   };
 
-  const handleSignOut = () => {
-    signOut();
-    setCurrentUser(null);
-    setAuthState('landing');
-    setCurrentView('dashboard');
+  const handleSignOut = async () => {
+    try {
+      await SupabaseService.signOut();
+      setCurrentUser(null);
+      setAuthState('landing');
+      setCurrentView('dashboard');
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
   const handleProfileUpdate = (updatedUser) => {

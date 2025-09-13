@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, Eye, EyeOff, Loader, Activity, Ruler, Weight, Target, Calendar } from 'lucide-react';
-import { signUp } from '../../services/auth';
+import SupabaseService from '../../services/SupabaseService';
 import { validateProfile, sanitizeInput } from '../../utils/validation';
 
 const SignUp = ({ onSuccess, onSignInClick }) => {
@@ -139,7 +139,7 @@ const SignUp = ({ onSuccess, onSignInClick }) => {
       goalWeightLbs: formData.goalWeight
     };
 
-    const result = await signUp(submissionData);
+    const result = await SupabaseService.signUp(submissionData.email, submissionData.password, submissionData);
     
     if (result.success) {
       onSuccess(result.user);

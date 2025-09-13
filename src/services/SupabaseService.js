@@ -4,7 +4,15 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = 'https://cvpzxwgvgnrvtvmvnych.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cHp4d2d2Z25ydnR2bXZueWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3MzA3OTAsImV4cCI6MjA3MzMwNjc5MH0.gRFEsgxokCcSs135_oFqxnH_b_clGcCyaEDddavCb9Y';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    storage: localStorage,
+    storageKey: 'fitgenius-auth-token',
+    autoRefreshToken: true,
+    detectSessionInUrl: false
+  }
+});
 
 class SupabaseService {
   // Authentication
@@ -102,8 +110,23 @@ class SupabaseService {
     return null;
   }
 
-  isAuthenticated() {
-    return supabase.auth.getSession().then(({ data }) => !!data.session);
+  // Get current session
+  async getCurrentSession() {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session;
+  }
+
+  // Check if user is authenticated
+  async isAuthenticated() {
+    const session = await this.getCurrentSession();
+    return !!session?.user;
+  }
+
+  // Set up auth state change listener
+  onAuthStateChange(callback) {
+    return supabase.auth.onAuthStateChange((event, session) => {
+      callback(event, session);
+    });
   }
 
   // Progress Entries

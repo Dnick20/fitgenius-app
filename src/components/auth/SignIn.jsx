@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, Loader } from 'lucide-react';
-import { signIn } from '../../services/auth';
+import SupabaseService from '../../services/SupabaseService';
 
 const SignIn = ({ onSuccess, onSignUpClick }) => {
   const [formData, setFormData] = useState({
@@ -28,7 +28,7 @@ const SignIn = ({ onSuccess, onSignUpClick }) => {
     setLoading(true);
     setError('');
 
-    const result = await signIn(formData.email, formData.password);
+    const result = await SupabaseService.signIn(formData.email, formData.password);
     
     if (result.success) {
       onSuccess(result.user);
